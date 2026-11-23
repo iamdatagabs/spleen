@@ -48,6 +48,7 @@ if(host&&canvas){
       const total=Number(state?.regionalFlows?.spleen??.156),dynamic=state?.splenicTerritories;
       territoryState=dynamic?.length===3?dynamic:distributeTerritoryFlow(total,resistances).map((q,i)=>({arterialInflow:q,venousOutflow:q,pressure:10,relativeResistance:resistances[i]}));
       territoryState=calculateTerritoryOxygen(territoryState);
+      updateOxygenSurface();
       territories.forEach((t,i)=>{
         const d=territoryState[i],visual=territoryVisualMetrics({arterialInflow:Number(d.arterialInflow),venousOutflow:Number(d.venousOutflow),pressure:Number(d.pressure)}),frac=total>0?Number(d.arterialInflow)/total:1/3;
         zoneMeshes[i].material.opacity=.13+.46*frac;zoneMeshes[i].material.emissiveIntensity=.08+.55*frac;
