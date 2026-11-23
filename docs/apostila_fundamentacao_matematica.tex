@@ -11,6 +11,8 @@
 \usepackage{booktabs,longtable,array}
 \usepackage{geometry}
 \usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
 \usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{enumitem}
@@ -177,6 +179,9 @@ Em um compartimento concentrado, a complacência relaciona desequilíbrio de flu
 \section{O que o modelo não representa}
 A representação portal reduzida não resolve veias individuais, sinusoides hepáticos, gradientes regionais intra-hepáticos, colaterais portossistêmicas, autorregulação microvascular, controle neural e hormonal ou interação completa com o débito cardíaco e o retorno venoso. Esses mecanismos podem ser importantes dependendo da pergunta científica.
 
+\section*{Figura de referência: circulação esplâncnica}\addcontentsline{toc}{section}{Figura de referência: circulação esplâncnica}
+\input{figuras/f01_circulacao_esplancnica}
+
 \chapter{Balanços de conservação e compartimentos}
 
 \section{Conservação de volume}
@@ -218,6 +223,9 @@ então:
 a mesma unidade de vazão dos termos à direita. Uma equação dimensionalmente inconsistente indica erro de formulação ou de conversão.
 
 \chapter{Equações diferenciais ordinárias no modelo}
+
+\section*{Arquitetura matemática do SPLEEN}\addcontentsline{toc}{section}{Arquitetura matemática do SPLEEN}
+\input{figuras/f02_modelo_compartimental}
 
 \section{O que uma EDO descreve}
 Uma equação diferencial ordinária relaciona uma função desconhecida de uma única variável independente, frequentemente o tempo, às suas derivadas. Um sistema geral pode ser escrito como:
