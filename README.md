@@ -81,3 +81,7 @@ These analyses are computational diagnostics using the current simplified model.
 - Transient three-territory splenic Windkessel layer: regional pressure storage and venous outflow feed the portal compartment; illustrative resistance/compliance parameters only.
 
 - Distributed arterial and venous pressure profiles for each splenic territory; intermediate branch pressures are interpolated for visualization and are not anatomically calibrated.
+
+
+## Spatial oxygen delivery — v1.2.0
+The 3D spleen view now reports regional convective oxygen delivery ($DO_2 = 10\,Q_a\,C_{aO_2}$) for its three reduced-order territories. Territory shading combines relative pressure and oxygen-delivery indices; the dashboard exposes mL O₂/min and percentage of a computational reference. Gaussian interpolation colors the parametric organ surface as a dimensionless visualization field, not as a tissue oxygenation or oxygen-diffusion solver. The model does not calculate oxygen extraction, consumption, hypoxia, or cellular availability. Outputs remain experimental and must not guide clinical decisions.
