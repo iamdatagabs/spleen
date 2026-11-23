@@ -17,10 +17,53 @@
   <div class="analysis-intro"><span class="section-kicker">07 / PHYSIOLOGIA INTEGRADA</span><h2>Hemodinâmica, <em>anatomia e criticidade.</em></h2><p>Camada experimental acoplada às variáveis do simulador. Ajuste as condições no painel principal e execute a simulação para atualizar os indicadores.</p></div>
   <div class="physiology-grid">
     <article class="panel anatomy-panel">
-      <div class="panel-head"><div><span class="section-kicker">08 / REPRESENTAÇÃO ESPACIAL</span><h2>Baço · modelo 3D conceitual</h2></div><span class="status">INTERATIVO</span></div>
-      <div class="spleen-stage"><div class="spleen-3d" id="spleen3d" role="img" aria-label="Representação tridimensional conceitual do baço com artéria esplênica, ramificações e veia esplênica"><div class="spleen-core"></div><svg class="spleen-vessels" viewBox="0 0 420 280" aria-hidden="true"><path d="M12 135 C65 135 75 105 118 118 S175 155 215 132 S290 85 340 118 L405 145" class="artery"/><path d="M118 118 C145 75 173 72 205 60 M165 145 C188 185 218 205 248 214 M215 132 C245 110 265 105 295 88 M250 115 C275 155 300 166 330 178" class="artery branch"/><path d="M18 205 C85 205 110 190 155 185 S235 170 285 188 S350 208 405 205" class="vein"/><path d="M155 185 C170 150 185 135 205 60 M285 188 C300 160 312 145 330 178" class="vein branch"/></svg></div><div class="anatomy-label label-hilum">Hilo esplênico</div><div class="anatomy-label label-artery">Artéria esplênica</div><div class="anatomy-label label-vein">Veia esplênica</div></div>
-      <div class="anatomy-legend"><span><i class="artery-dot"></i>Fluxo arterial</span><span><i class="vein-dot"></i>Drenagem venosa</span><span><i class="parenchyma-dot"></i>Parênquima</span></div>
-      <p class="micro">Geometria paramétrica esquemática para exploração de fluxo. Não representa segmentação anatômica, escala, vascularização real ou anatomia individual.</p>
+      <div class="panel-head"><div><span class="section-kicker">08 / REPRESENTAÇÃO ESPACIAL</span><h2>Baço · modelo 3D interativo</h2></div><span class="status">INTERATIVO</span></div>
+      <div class="spleen-stage">
+        <div class="spleen-3d" id="spleen3d" role="img" aria-label="Modelo tridimensional esquemático do baço, com artéria esplênica ramificada, leito microvascular e veia esplênica. Arraste para girar.">
+          <svg class="spleen-model" viewBox="0 0 440 280" aria-hidden="true">
+            <defs>
+              <linearGradient id="splenicCapsule" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0aaa4"/><stop offset=".35" stop-color="#bd6572"/><stop offset=".72" stop-color="#853e59"/><stop offset="1" stop-color="#43283f"/></linearGradient>
+              <linearGradient id="splenicSide" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#54283e"/><stop offset="1" stop-color="#241c32"/></linearGradient>
+              <radialGradient id="splenicHighlight" cx=".32" cy=".24" r=".75"><stop stop-color="#ffd1c4" stop-opacity=".65"/><stop offset=".55" stop-color="#e58e91" stop-opacity=".12"/><stop offset="1" stop-color="#351d35" stop-opacity=".4"/></radialGradient>
+              <filter id="splenicShadow" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur stdDeviation="9"/></filter>
+              <pattern id="splenicTrabeculae" width="22" height="22" patternUnits="userSpaceOnUse"><path d="M0 11 Q11 2 22 11 M11 0 Q3 11 11 22" fill="none" stroke="#f4c0c0" stroke-opacity=".12" stroke-width="1"/></pattern>
+            </defs>
+            <g class="spleen-volume" transform="translate(0 7)">
+              <path class="spleen-shadow" d="M83 137 C48 91 75 42 135 28 C211 8 302 34 346 83 C371 111 351 130 329 143 C355 167 329 212 281 230 C211 253 128 222 94 184 C73 160 69 147 83 137Z" fill="#000" opacity=".48" filter="url(#splenicShadow)"/>
+              <path class="spleen-side" d="M83 137 C48 91 75 42 135 28 C211 8 302 34 346 83 C371 111 351 130 329 143 C355 167 329 212 281 230 C211 253 128 222 94 184 C73 160 69 147 83 137Z" fill="url(#splenicSide)" transform="translate(0 13)"/>
+              <path class="spleen-surface" d="M83 137 C48 91 75 42 135 28 C211 8 302 34 346 83 C371 111 351 130 329 143 C355 167 329 212 281 230 C211 253 128 222 94 184 C73 160 69 147 83 137Z" fill="url(#splenicCapsule)" stroke="#f2b5ad" stroke-opacity=".55" stroke-width="2"/>
+              <path d="M83 137 C48 91 75 42 135 28 C211 8 302 34 346 83 C371 111 351 130 329 143 C355 167 329 212 281 230 C211 253 128 222 94 184 C73 160 69 147 83 137Z" fill="url(#splenicHighlight)"/>
+              <path d="M96 134 C115 86 167 52 226 54 S315 91 323 132 M104 155 C148 205 236 224 292 186" fill="none" stroke="#f8c6bd" stroke-opacity=".22" stroke-width="2"/>
+              <path d="M112 66 Q190 25 270 62 T326 130 M102 170 Q178 227 268 204" fill="none" stroke="url(#splenicTrabeculae)" stroke-width="18" opacity=".8"/>
+              <g class="white-pulp" fill="#f6c9b5" opacity=".45"><circle cx="142" cy="88" r="5"/><circle cx="187" cy="61" r="4"/><circle cx="235" cy="84" r="5"/><circle cx="278" cy="111" r="4"/><circle cx="163" cy="151" r="4"/><circle cx="225" cy="174" r="5"/><circle cx="280" cy="183" r="4"/><circle cx="122" cy="125" r="3"/></g>
+            </g>
+            <g class="vascular-bed">
+              <g class="capillary-network" fill="none" stroke="#f3d4b9" stroke-width="1.5" stroke-linecap="round">
+                <path d="M153 105 C166 92 177 95 188 107 S210 122 222 108 S246 97 259 111 S279 126 291 115"/>
+                <path d="M153 105 C160 122 174 130 188 120 S214 133 224 151 S247 151 259 137 S278 128 291 115"/>
+                <path d="M188 107 C182 90 194 78 207 78 M222 108 C235 91 250 88 259 111 M224 151 C211 164 197 165 188 150"/>
+                <path d="M153 105 L143 122 M188 120 L179 139 M259 137 L270 154 M291 115 L305 103"/>
+              </g>
+              <g class="arterial-tree" fill="none" stroke="#ff796f" stroke-linecap="round" stroke-linejoin="round">
+                <path class="artery-main" d="M8 111 C43 111 66 115 93 126 S122 130 145 119" />
+                <path class="artery-branch" d="M111 126 C132 102 145 87 165 82 S190 82 207 91 M137 123 C157 145 173 158 194 165 M165 82 C183 62 203 57 220 60 M194 165 C216 178 235 180 253 168 M207 91 C227 75 245 74 260 87 M145 119 C158 112 170 110 183 115"/>
+                <path class="artery-branch" d="M183 115 C198 103 205 102 218 108 M194 165 C203 147 214 138 228 135"/>
+              </g>
+              <g class="venous-tree" fill="none" stroke="#78b5ff" stroke-linecap="round" stroke-linejoin="round">
+                <path class="vein-main" d="M432 208 C390 208 369 204 343 193 S311 179 285 181"/>
+                <path class="vein-branch" d="M343 193 C330 168 315 151 296 145 S272 145 255 155 M369 204 C350 220 328 226 308 218 M311 179 C300 160 289 143 274 132 M285 181 C264 193 248 193 232 184 M296 145 C292 125 280 111 263 105 M255 155 C239 147 225 145 213 151"/>
+              </g>
+              <g class="flow-particles" fill="#fff1d7"><circle r="3"><animateMotion dur="2.8s" repeatCount="indefinite" path="M8 111 C43 111 66 115 93 126 S122 130 145 119 C183 82 190 82 207 91"/></animateMotion></circle><circle r="2.5"><animateMotion dur="3.6s" repeatCount="indefinite" path="M432 208 C390 208 369 204 343 193 S311 179 285 181 C264 193 248 193 232 184"/></animateMotion></circle></g>
+            </g>
+            <g class="hilum-marker"><circle cx="337" cy="145" r="8" fill="#f3d7a4" stroke="#44283b" stroke-width="3"/><path d="M337 145 L369 123" stroke="#f3d7a4" stroke-width="1.5" stroke-dasharray="3 3"/></g>
+          </svg>
+        </div>
+        <div class="anatomy-label label-hilum">Hilo esplênico</div><div class="anatomy-label label-artery">Artéria esplênica</div><div class="anatomy-label label-vein">Veia esplênica</div>
+      </div>
+      <div class="spleen-view-controls"><span>Arraste o modelo para rotacionar</span><button type="button" id="spleenViewReset" class="ghost">↺ Restaurar vista</button></div>
+      <div class="anatomy-legend"><span><i class="artery-dot"></i>Árvore arterial</span><span><i class="vein-dot"></i>Árvore venosa</span><span><i class="parenchyma-dot"></i>Parênquima</span><span><i class="micro-dot"></i>Rede microvascular</span></div>
+      <div class="spatial-readouts"><div><span>Fluxo arterial esplênico</span><b id="spleen3dFlow">0,156 L/min</b></div><div><span>Índice relativo</span><b id="spleen3dPerfusion">100%</b></div><div><span>Pressão portal</span><b id="spleen3dPortal">10,0 mmHg</b></div></div>
+      <p class="micro">Modelo geométrico 3D esquemático, com camadas de parênquima, árvore arterial, rede microvascular ilustrativa e drenagem venosa. A intensidade visual acompanha o fluxo arterial esplênico agregado do simulador. Não representa segmentação anatômica, escala, distribuição microvascular real ou anatomia individual.</p>
     </article>
     <article class="panel physiology-panel">
       <div class="panel-head"><div><span class="section-kicker">09 / RELAÇÕES FISIOLÓGICAS</span><h2>Variáveis derivadas</h2></div></div>
