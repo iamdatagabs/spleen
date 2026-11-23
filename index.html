@@ -17,9 +17,9 @@
 <div class="panel analysis-controls">
 <div class="panel-head"><div><span class="section-kicker">CONFIGURAÇÃO</span><h2>Experimento global</h2></div></div>
 <label class="control"><span>Método de análise</span><select id="uqMethod"><option value="lhs">Latin Hypercube Sampling</option><option value="mc">Monte Carlo</option><option value="mcmc">Markov Chain Monte Carlo</option></select></label>
-<label class="control"><span>Número de amostras <b id="sampleValue">300</b></span><input id="uqSamples" type="range" min="50" max="1000" step="50" value="300"><small>No MCMC, número de amostras retidas após burn-in.</small></label>
-<label class="control" id="burnControl"><span>Burn-in MCMC <b id="burnValue">500</b></span><input id="uqBurn" type="range" min="100" max="2000" step="100" value="500"></label>
-<label class="control" id="thinControl"><span>Thinning <b id="thinValue">2</b></span><input id="uqThin" type="range" min="1" max="10" value="2"></label>
+<label class="control"><span>Número de amostras <b id="sampleValue">200</b></span><input id="uqSamples" type="range" min="50" max="500" step="50" value="200"><small>No MCMC, número de amostras retidas após burn-in.</small></label>
+<label class="control" id="burnControl"><span>Burn-in MCMC <b id="burnValue">300</b></span><input id="uqBurn" type="range" min="100" max="1000" step="100" value="300"></label>
+<label class="control" id="thinControl"><span>Thinning <b id="thinValue">2</b></span><input id="uqThin" type="range" min="1" max="5" value="2"></label>
 <label class="control"><span>Semente aleatória</span><input id="uqSeed" type="number" min="0" max="2147483647" value="2026"></label>
 <div id="observationPanel" class="observation-panel"><h3>Observações de referência para MCMC</h3><p>Informe pelo menos uma observação independente e seu desvio-padrão de medição/modelagem. Não use valores simulados como se fossem dados clínicos.</p><textarea id="uqObservations" rows="5">[
   {"metric":"portal_pressure_mmhg","value":10.0,"sd":1.0}
