@@ -218,3 +218,25 @@ A parcela complementar (1 - f_g) Q_stomach é registrada como retorno venoso sis
 Para manter o estado basal inicial em equilíbrio quando f_g=0,90, a resistência hepática de referência é recalibrada para R_h = 5 / (0,984 + 0,90 × 0,216) mmHg/(L/min), de modo que a drenagem portal calculada no basal corresponda ao fluxo portal de entrada. Essa escolha é apenas uma condição de equilíbrio do protótipo, não uma medida fisiológica de resistência.
 
 A fração portal gástrica deve ser revisada com anatomia e cirurgia: a drenagem venosa gástrica possui tributárias portais predominantes e conexões sistêmicas variáveis. A simplificação atual não modela veias gástricas individuais, anastomoses gastroesofágicas, tributárias gastroepiplóicas/curtas, nem variações anatômicas ou alterações por hipertensão portal.
+
+
+## 18. Representação espacial 3D esplênica — camada visual
+
+A camada espacial do dashboard evolui de uma forma volumétrica simples para uma geometria SVG em perspectiva, composta por:
+
+- cápsula/parênquima esplênico com volume e sombreamento esquemáticos;
+- tronco arterial e ramificações intraparenquimatosas;
+- rede microvascular ilustrativa, sem pretensão de reconstruir arteríolas centrais, capilares ou sinusoides reais;
+- drenagem venosa intraparenquimatosa e tronco venoso de saída;
+- região hilar marcada como referência espacial.
+
+A geometria pode ser rotacionada por arraste e restaurada pela ação de reset. A camada visual lê o estado estruturado `window.SPLEEN_MODEL_STATE`. A escala de intensidade visual dos vasos e da rede microvascular é vinculada ao quociente entre o fluxo arterial esplênico agregado atual e o basal ilustrativo de 0,156 L/min. O valor de pressão portal é exibido ao lado, mas não é usado para inferir perfusão microvascular.
+
+**Limitação importante:** trata-se de uma representação 3D esquemática por geometria vetorial em perspectiva, não de uma malha anatômica segmentada, reconstrução DICOM, modelo de elementos finitos ou simulação CFD. Os vasos não têm calibres anatômicos, a rede microvascular não é resolvida numericamente e o fluxo não é calculado espacialmente. A animação representa direção conceitual, não velocidade ou distribuição real de hemácias.
+
+### Próxima evolução espacial
+
+1. Substituir a geometria esquemática por superfície derivada de atlas anatômico ou segmentação validada.
+2. Definir hierarquia arterial/venosa com calibres, comprimentos e resistências rastreáveis.
+3. Implementar malha volumétrica e campos espaciais somente após especificação das condições de contorno.
+4. Verificar conservação de massa e convergência antes de qualquer interpretação fisiológica.
