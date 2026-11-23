@@ -151,3 +151,40 @@ O endpoint `POST /api/v1/prior-sensitivity` compara cenários uniformes contraí
 O endpoint `POST /api/v1/synthetic-recovery` gera parâmetros verdadeiros a partir dos intervalos exploratórios, produz observações sintéticas com ruído Gaussiano e aproxima a distribuição posterior por amostragem por importância de candidatos do prior. Retorna ranks normalizados, erro absoluto mediano normalizado e ESS da amostragem por importância. Trata-se de uma verificação preliminar estilo SBC, não de uma implementação formal validada de Simulation-Based Calibration. ESS baixo indica degeneração da aproximação posterior; nesse caso, os ranks e erros não devem ser interpretados como diagnóstico confiável.
 
 Os três endpoints usam dados inteiramente sintéticos/modelados e não fornecem evidência fisiológica. São ferramentas para detectar fragilidades matemáticas, dependência de hipóteses e limitações de informação no modelo atual.
+
+
+## 14. Fisiologia integrada, modelo espacial conceitual e alertas experimentais — branch de desenvolvimento
+
+### 14.1 Relações fisiológicas derivadas
+A interface apresenta a pressão de perfusão abdominal (APP) como diferença entre pressão arterial média e pressão intra-abdominal:
+
+APP = PAM - PIA
+
+O fluxo esplênico é lido do compartimento regional do modelo JavaScript e comparado com a referência ilustrativa de 0,156 L/min:
+
+I_spleen = 100 × Q_spleen / 0,156
+
+O gradiente portal-hepático é calculado como P_portal - P_hv, com pressão venosa hepática assumida em 5 mmHg no modelo atual. São variáveis derivadas do simulador, não medidas de paciente.
+
+### 14.2 Modelo 3D
+A interface inclui uma representação tridimensional conceitual do baço construída com CSS 3D e SVG: parênquima, hilo, artéria esplênica e veia esplênica. A rotação por ponteiro permite inspecionar a composição visual. A geometria não é anatômica, segmentada, escalonada nem validada; não representa vasos segmentares reais, polpa vermelha/branca ou arquitetura trabecular.
+
+### 14.3 Indicadores experimentais de criticidade
+O dashboard calcula quatro sinais de alerta a partir do cenário simulado:
+
+| Indicador | Faixa de atenção | Faixa de alerta elevado |
+|---|---:|---:|
+| APP | 50–60 mmHg | < 50 mmHg |
+| Índice de fluxo esplênico | 70–85% do basal | < 70% do basal |
+| Pressão portal | 15–20 mmHg | > 20 mmHg |
+| Fluxo esplâncnico total | 60–80% do basal | < 60% do basal |
+
+Os valores acima são limiares provisórios de engenharia para demonstrar a lógica de alerta. Não são escore, cutoff ou recomendação clínica validada. A classificação geral reflete o indicador de maior gravidade no conjunto e não deve ser usada para diagnóstico, prognóstico, triagem ou conduta. Antes de qualquer uso assistencial, cada variável, unidade, população, intervalo, fonte bibliográfica, incerteza e regra de combinação precisa ser revisada pelo corpo médico e submetida a calibração e validação independentes.
+
+### 14.4 Próxima etapa científica
+1. Revisar unidades e coerência dimensional de cada equação e parâmetro.
+2. Ancorar intervalos em literatura e dados fisiológicos rastreáveis.
+3. Definir se a variável alvo é fluxo esplênico arterial, fluxo microvascular, perfusão tecidual ou entrega de oxigênio; não são intercambiáveis.
+4. Separar modelo anatômico 3D, modelo hemodinâmico compartimental e eventual CFD/EDP.
+5. Validar estabilidade, positividade, conservação, convergência numérica e comportamento em condições-limite.
+6. Desenvolver e avaliar qualquer índice composto somente após consenso clínico e protocolo de validação.
