@@ -8,6 +8,7 @@
   function update(){
     const state=window.SPLEEN_MODEL_STATE;
     if(!state) return;
+    window.updateSpleenSpatialState?.(state);
     const map=Number(state.inputs.map),iap=Number(state.inputs.pneu),app=map-iap;
     const total=Number(state.totalFlow),portal=Number(state.portalPressure);
     const spleen=Number(state.regionalFlows.spleen);
