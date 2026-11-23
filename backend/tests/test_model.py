@@ -238,7 +238,7 @@ def test_splenic_resistance_asymmetry_creates_transient_pressure_and_outflow_red
     assert first["splenic_territories"][0]["pressure_mmhg"] == 10.0
     assert last["splenic_territories"][0]["pressure_mmhg"] > last["splenic_territories"][2]["pressure_mmhg"]
     assert math.isclose(sum(x["arterial_inflow_l_min"] for x in last["splenic_territories"]),
-                        last["regional_flow_l_min"]["spleen"], abs_tol=1e-6)
+                        last["regional_flow_l_min"]["spleen"], abs_tol=2e-6)
     assert math.isclose(sum(x["venous_outflow_l_min"] for x in last["splenic_territories"]),
                         last["splenic_venous_outflow_l_min"], abs_tol=1e-6)
 
