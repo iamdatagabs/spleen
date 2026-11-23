@@ -61,10 +61,10 @@ A dinâmica dos leitos arteriais é representada por
 \end{equation}
 em que $\tau_i$ são constantes de tempo regionais (min) e $s_\tau$ é um fator multiplicativo adimensional. A entrada portal e a saída portal-hepática são
 \begin{align}
-Q_{\mathrm{portal,in}}&=Q_{int}+Q_b+Q_{panc},\\
+Q_{\mathrm{portal,in}}&=f_gQ_e+Q_{int}+Q_b+Q_{panc},\\
 Q_{\mathrm{portal,out}}&=\max\left(0,\frac{P_p-P_{hv}}{R_h}\right),
 \end{align}
-A estrutura atual inclui os fluxos intestinal, esplênico e pancreático na entrada portal. O fluxo do compartimento gástrico integra o fluxo arterial esplâncnico total, mas não é incluído no retorno portal nesta versão reduzida. Essa omissão é uma hipótese estrutural explícita, pendente de revisão anatômica e fisiológica; não deve ser interpretada como ausência de drenagem gástrica para o sistema porta.
+A entrada portal inclui uma fração configurável do fluxo arterial gástrico. A parcela complementar é contabilizada como retorno venoso sistêmico simplificado, fora do compartimento portal. O parâmetro $f_g$ não representa uma fração anatômica universal: é uma hipótese exploratória para análise de sensibilidade, que exige revisão anatômica e clínica.
 Com $P_{hv}=5$ mmHg e $R_h$ em mmHg/(L\,min$^{-1}$). A dinâmica do compartimento portal é
 \begin{equation}
 \boxed{C_p\frac{dP_p}{dt}=Q_{\mathrm{portal,in}}-Q_{\mathrm{portal,out}}},
