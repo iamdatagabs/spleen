@@ -23,6 +23,9 @@ class Parameters(BaseModel):
     hepatic_resistance: float = Field(5.0/(.984+.90*.216), gt=.1, le=30, description="mmHg/(L/min); illustrative model parameter")
     portal_feedback_gain: float = Field(.018, ge=0, le=.08, description="dimensionless gain; illustrative")
     tau_scale: float = Field(1.0, ge=.25, le=4, description="multiplier for regional time constants")
+    splenic_resistance_superior: float = Field(1.0, ge=.5, le=2.0)
+    splenic_resistance_middle: float = Field(1.0, ge=.5, le=2.0)
+    splenic_resistance_inferior: float = Field(1.0, ge=.5, le=2.0)
 
 class Request(BaseModel):
     parameters: Parameters = Parameters()
@@ -47,12 +50,22 @@ def simulate(request: Request):
         return {"error": "integration step limit exceeded"}
     q = [1.2*f for f in FRACTIONS]
     portal_pressure = 10.0
+    splenic_pressures = [10.0, 10.0, 10.0]
+    splenic_resistances = [p.splenic_resistance_superior, p.splenic_resistance_middle, p.splenic_resistance_inferior]
+    splenic_resistance_base = 5.0 / .052
+    splenic_compliance = .02  # L/mmHg per territory; illustrative
     timeline = []
     stride = max(1, round(.25/p.dt_min))
     for n in range(steps+1):
         gastric_portal_in = p.gastric_portal_fraction*q[0]
         gastric_systemic_return = (1-p.gastric_portal_fraction)*q[0]
-        portal_in = gastric_portal_in + q[1] + q[2] + q[3]
+        splenic_territory_in = [q[2]/3.0]*3
+        splenic_territory_out = [
+            max(0.0, (splenic_pressures[i]-HEPATIC_VENOUS_PRESSURE)/(splenic_resistance_base*splenic_resistances[i]))
+            for i in range(3)
+        ]
+        splenic_venous_out = sum(splenic_territory_out)
+        portal_in = gastric_portal_in + q[1] + q[3] + splenic_venous_out
         hepatic_out = max(0.0, (portal_pressure-HEPATIC_VENOUS_PRESSURE)/p.hepatic_resistance)
         total = sum(q)
         hepatic_arterial = .2*total*min(1.3, max(.7, 1+.03*(10-portal_pressure)))
@@ -65,21 +78,34 @@ def simulate(request: Request):
                 "gastric_portal_inflow_l_min": round(gastric_portal_in, 6),
                 "gastric_systemic_return_l_min": round(gastric_systemic_return, 6),
                 "portal_pressure_mmhg": round(portal_pressure, 6),
+                "splenic_territories": [
+                    {"name": name, "arterial_inflow_l_min": round(splenic_territory_in[i], 6),
+                     "venous_outflow_l_min": round(splenic_territory_out[i], 6),
+                     "pressure_mmhg": round(splenic_pressures[i], 6),
+                     "relative_resistance": splenic_resistances[i]}
+                    for i, name in enumerate(("superior", "middle", "inferior"))
+                ],
+                "splenic_venous_outflow_l_min": round(splenic_venous_out, 6),
                 "hepatic_portal_outflow_l_min": round(hepatic_out, 6),
                 "hepatic_arterial_flow_l_min": round(hepatic_arterial, 6),
                 "hepatic_oxygen_delivery_ml_min": round((hepatic_out+hepatic_arterial)*185, 6)
             })
         goal = regional_targets(p, portal_pressure)
         q = [max(0.0, v+p.dt_min*(goal[i]-v)/(TAU[i]*p.tau_scale)) for i, v in enumerate(q)]
+        splenic_pressures = [
+            max(HEPATIC_VENOUS_PRESSURE,
+                splenic_pressures[i] + p.dt_min*(splenic_territory_in[i]-splenic_territory_out[i])/splenic_compliance)
+            for i in range(3)
+        ]
         portal_pressure = max(HEPATIC_VENOUS_PRESSURE,
                               portal_pressure+p.dt_min*(portal_in-hepatic_out)/p.portal_compliance)
-    return {"model_version": "0.7.0", "method": "explicit_euler_coupled_ode",
+    return {"model_version": "0.8.0", "method": "explicit_euler_coupled_ode_with_splenic_windkessel_territories",
             "dt_min": p.dt_min, "warnings": ["research/education only; not clinically validated"],
             "timeline": timeline}
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model_version": "0.7.0"}
+    return {"status": "ok", "model_version": "0.8.0"}
 
 @app.post("/api/v1/simulations")
 def run_simulation(request: Request):
