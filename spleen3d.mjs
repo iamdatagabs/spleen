@@ -1,4 +1,5 @@
 import { distributeTerritoryFlow, territoryVisualMetrics } from "./spatial-model.mjs";
+import { calculateTerritoryOxygen } from "./oxygen-transport.mjs";
 
 const host=document.getElementById("spleen3d"),canvas=document.getElementById("spleen3dCanvas"),fallback=document.getElementById("spleen3dFallback");
 if(host&&canvas){
@@ -42,16 +43,18 @@ if(host&&canvas){
     const updateCompartments=()=>{
       const total=Number(state?.regionalFlows?.spleen??.156),dynamic=state?.splenicTerritories;
       territoryState=dynamic?.length===3?dynamic:distributeTerritoryFlow(total,resistances).map((q,i)=>({arterialInflow:q,venousOutflow:q,pressure:10,relativeResistance:resistances[i]}));
+      territoryState=calculateTerritoryOxygen(territoryState);
       territories.forEach((t,i)=>{
         const d=territoryState[i],visual=territoryVisualMetrics({arterialInflow:Number(d.arterialInflow),venousOutflow:Number(d.venousOutflow),pressure:Number(d.pressure)}),frac=total>0?Number(d.arterialInflow)/total:1/3;
         zoneMeshes[i].material.opacity=.13+.46*frac;zoneMeshes[i].material.emissiveIntensity=.08+.55*frac;
-        const tint=pressureColor(visual.pressureLevel);zoneMeshes[i].material.color.set(t.color).lerp(new THREE.Color(tint),visual.pressureLevel==="reference"?.08:.48);zoneMeshes[i].material.emissive.copy(zoneMeshes[i].material.color);
+        const tint=pressureColor(visual.pressureLevel),oxygenTint=Number(d.relativeOxygenDelivery)>=.9?"#58d6c2":Number(d.relativeOxygenDelivery)>=.7?"#f4bd67":"#ef626b";zoneMeshes[i].material.color.set(t.color).lerp(new THREE.Color(tint),visual.pressureLevel==="reference"?.08:.34).lerp(new THREE.Color(oxygenTint),.28);zoneMeshes[i].material.emissive.copy(zoneMeshes[i].material.color);
         pressureNodes[i].material.color.set(tint);pressureNodes[i].material.emissive.set(tint);pressureNodes[i].scale.setScalar(.85+Math.min(1.5,Math.abs(visual.pressureRatio-1)));
         const updateTube=(entry,radius)=>{entry.mesh.geometry.dispose();entry.mesh.geometry=new THREE.TubeGeometry(entry.curve,40,radius,8,false);};
         updateTube(territoryVessels[i].artery,visual.arterialRadius);updateTube(territoryVessels[i].vein,visual.venousRadius);
         const label=t.label==="Intermediário"?"Middle":t.label,rEl=document.getElementById("r"+label+"Value"),qEl=document.getElementById("q"+label);
         if(rEl)rEl.textContent=Number(d.relativeResistance??resistances[i]).toFixed(1).replace(".",",")+"×";
         if(qEl)qEl.textContent="Q arterial "+fmt(d.arterialInflow)+" · Q venosa "+fmt(d.venousOutflow)+" L/min · P "+fmt(d.pressure)+" mmHg";
+        const oxygenEl=document.getElementById("o2"+label);if(oxygenEl)oxygenEl.textContent=fmt(d.oxygenDelivery)+" mL O₂/min · "+fmt(100*d.relativeOxygenDelivery)+"% ref.";
         const pathEl=document.getElementById("path"+label),ap=d.arterialPath,vp=d.venousPath;
         if(pathEl&&ap?.length===4&&vp?.length===4)pathEl.textContent="P arterial: "+fmt(ap[0].pressure_mmhg)+" → "+fmt(ap[3].pressure_mmhg)+" · P venosa: "+fmt(vp[0].pressure_mmhg)+" → "+fmt(vp[3].pressure_mmhg)+" mmHg";
       });
