@@ -66,3 +66,32 @@ def test_sensitivity_respects_parameter_bounds():
     assert len(result["results"]) == 4
     for row in result["results"]:
         assert row["high"] > row["low"]
+
+
+def test_lhs_and_monte_carlo_return_predictive_summaries():
+    from main import GlobalAnalysisRequest, global_uncertainty
+    for method in ("lhs", "monte_carlo"):
+        result = global_uncertainty(GlobalAnalysisRequest(
+            method=method, samples=20, seed=123,
+            parameters=Parameters(duration_min=2, dt_min=.05)
+        ))
+        assert result["method"] == method
+        assert len(result["parameter_samples"]) == 20
+        assert result["summary"]["portal_pressure_mmhg"]["p05"] <= result["summary"]["portal_pressure_mmhg"]["p95"]
+
+def test_mcmc_requires_observations():
+    from main import GlobalAnalysisRequest, posterior_mcmc
+    result = posterior_mcmc(GlobalAnalysisRequest(method="mcmc", samples=20, burn_in=50))
+    assert "error" in result
+
+def test_mcmc_runs_with_explicit_observations():
+    from main import GlobalAnalysisRequest, posterior_mcmc
+    result = posterior_mcmc(GlobalAnalysisRequest(
+        method="mcmc", samples=20, burn_in=50, thin=1, seed=7,
+        parameters=Parameters(duration_min=2, dt_min=.05),
+        observations=[{"metric":"portal_pressure_mmhg","value":10.0,"sd":1.0}]
+    ))
+    assert result["method"] == "random_walk_metropolis"
+    assert len(result["parameter_samples"]) == 20
+    assert 0 <= result["acceptance_rate"] <= 1
+    assert "hepatic_resistance" in result["parameter_summary"]
