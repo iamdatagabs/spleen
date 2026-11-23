@@ -9,13 +9,13 @@ GitHub Pages is enabled and the initial deployment completed successfully. Open 
 
 The latest commits may still be propagating while their Actions runs finish. [Deployment history](https://github.com/iamdatagabs/spleen/actions).
 
-## Current model — v1.0.0
+## Current model — v1.1.0 spatial preview
 - Four regional arterial flow compartments (stomach, intestine, spleen and pancreas).
 - Coupled portal pressure compartment with compliance and hepatic outflow resistance.
 - Simplified feedback from portal pressure to regional target flow.
 - Derived portal inflow, hepatic outflow, hepatic arterial flow and hepatic oxygen-delivery indicator.
 - Browser simulation, time-series chart, CSV export, and an interactive global-uncertainty workspace.
-- Interactive Three.js parametric 3D spleen surface with arterial/venous tree and three transient computational vascular territories with local pressure storage, venous outflow and illustrative arterial/venous pressure profiles along serial branches.
+- Interactive Three.js parametric 3D spleen surface with three transient territories. Territory intensity and pressure markers respond to simulated pressure; arterial/venous branch thickness and particle transit respond independently to regional inflow/outflow. These are visual encodings of reduced-order outputs, not spatial CFD or anatomical measurements.
 - Browser-side LHS, Monte Carlo and exploratory four-chain MCMC with split-R-hat, approximate ESS and lag-1 autocorrelation diagnostics, with P05/P50/P95 summaries and CSV export.
 - Python API endpoints: `POST /api/v1/sensitivity`, `POST /api/v1/uncertainty` (LHS/Monte Carlo) and `POST /api/v1/mcmc` (requires observations).
 - Python/FastAPI reference implementation with configurable structural parameters and a local OAT sensitivity endpoint (`POST /api/v1/sensitivity`).
@@ -30,6 +30,9 @@ python -m http.server 8000
 Then open http://localhost:8000.
 
 ## Verification
+
+The CI pipeline also runs Node.js tests for conservative territory-flow allocation and bounded 3D flow/pressure visual mappings.
+
 Run the backend verification suite locally:
 
 ```bash
