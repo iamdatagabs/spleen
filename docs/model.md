@@ -130,3 +130,24 @@ O modelo permanece reduzido e não calibrado. Não existe dataset clínico assoc
 A suíte automatizada gera saídas sintéticas a partir de um vetor paramétrico conhecido e verifica se o vetor gerador apresenta discrepância nula em relação às próprias saídas, enquanto uma alternativa perturbada apresenta discrepância maior. Este teste verifica consistência do caminho direto e da comparação paramétrica. Como os dados são gerados pelo próprio modelo, não constitui validação independente, demonstração de identificabilidade, nem evidência de que os parâmetros sejam recuperáveis em dados reais.
 
 A recuperação inferencial deve ser aprofundada com experimentos de simulação-estimação (simulation-based calibration), diferentes níveis de ruído, desenho de observações, análise de correlação posterior e avaliação de identificabilidade estrutural/prática. O resultado de convergência MCMC não resolve esses problemas.
+
+
+## 12. Especificação matemática em LaTeX — v0.6.0
+
+A formulação formal completa está disponível em [`docs/model.tex`](model.tex). O documento apresenta estados, unidades, entradas, gradiente de perfusão, fluxo-alvo regional, EDOs acopladas, indicadores derivados e esquema de Euler explícito. As equações correspondem à estrutura reduzida implementada no protótipo; as relações fenomenológicas e os coeficientes permanecem hipóteses exploratórias.
+
+## 13. Investigações metodológicas — v0.6.0
+
+### 13.1 Triagem de identificabilidade local
+
+O endpoint `POST /api/v1/identifiability` calcula uma matriz de sensibilidades finitas e escaladas, posto numérico e cossenos entre colunas paramétricas. A análise avalia se os efeitos dos parâmetros são distinguíveis localmente para os quatro indicadores finais e no cenário escolhido. Posto deficiente ou colunas quase colineares sugerem problemas de identificabilidade prática. Posto completo não prova identificabilidade estrutural ou global.
+
+### 13.2 Sensibilidade às hipóteses de prior
+
+O endpoint `POST /api/v1/prior-sensitivity` compara cenários uniformes contraído, de referência e expandido. Retorna quantis preditivos e deslocamentos relativos de P05/P50/P95. O exercício mede dependência das conclusões em relação aos limites arbitrados; não transforma os intervalos em priors empiricamente fundamentados.
+
+### 13.3 Recuperação sintética e ranks
+
+O endpoint `POST /api/v1/synthetic-recovery` gera parâmetros verdadeiros a partir dos intervalos exploratórios, produz observações sintéticas com ruído Gaussiano e aproxima a distribuição posterior por amostragem por importância de candidatos do prior. Retorna ranks normalizados, erro absoluto mediano normalizado e ESS da amostragem por importância. Trata-se de uma verificação preliminar estilo SBC, não de uma implementação formal validada de Simulation-Based Calibration. ESS baixo indica degeneração da aproximação posterior; nesse caso, os ranks e erros não devem ser interpretados como diagnóstico confiável.
+
+Os três endpoints usam dados inteiramente sintéticos/modelados e não fornecem evidência fisiológica. São ferramentas para detectar fragilidades matemáticas, dependência de hipóteses e limitações de informação no modelo atual.
