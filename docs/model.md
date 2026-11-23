@@ -87,3 +87,39 @@ Para cada perturbação são retornados os valores basal, baixo e alto para flux
 A variação percentual entre os extremos é fornecida como descrição da resposta à faixa testada; não é intervalo de confiança.
 
 Esta é uma análise local exploratória, dependente do cenário basal e da amplitude arbitrada. Não captura interações entre parâmetros nem distribuições probabilísticas. A próxima etapa metodológica é Latin Hypercube Sampling ou Monte Carlo, após definir distribuições justificadas por literatura/dados. O endpoint não substitui calibração ou validação.
+
+
+## 11. Análise global de incerteza e inferência — v0.4.0
+
+A plataforma inclui três rotas de análise, implementadas no backend Python e na interface estática por execução local no navegador.
+
+### 11.1 Latin Hypercube Sampling (LHS)
+Cada parâmetro tem seu intervalo dividido em N estratos equiprováveis; uma amostra é sorteada em cada estrato e as colunas são permutadas independentemente. A análise é prior-preditiva: os resultados descrevem a propagação das distribuições assumidas, sem condicionar a dados observados.
+
+### 11.2 Monte Carlo
+São sorteados N vetores independentes a partir de distribuições uniformes nos intervalos definidos. A comparação com LHS deve considerar erro de Monte Carlo, estabilidade dos quantis e cobertura do espaço amostral.
+
+### 11.3 Markov Chain Monte Carlo (MCMC)
+Foi implementado um amostrador exploratório Random-Walk Metropolis. O usuário fornece observações no formato:
+```json
+[
+  {"metric": "portal_pressure_mmhg", "value": 10.0, "sd": 1.0}
+]
+```
+A função de verossimilhança é Gaussiana independente:
+`log L = -1/2 Σ[((y_model - y_obs)/sd)^2] - Σ log(sd)`.
+Os priors são uniformes e limitados aos intervalos paramétricos. A cadeia é inicializada no ponto médio de cada intervalo. O usuário define burn-in, thinning e número de amostras retidas.
+
+A implementação atual é uma cadeia única, sem adaptação de proposta. A taxa de aceitação, por si só, não demonstra convergência. Antes de qualquer interpretação inferencial, devem ser adicionadas múltiplas cadeias independentes, trace plots, diagnóstico R-hat, tamanho efetivo de amostra, autocorrelação e análise de sensibilidade aos priors. O backend expõe `POST /api/v1/mcmc`; LHS e Monte Carlo usam `POST /api/v1/uncertainty` com `method` igual a `lhs` ou `monte_carlo`.
+
+### 11.4 Intervalos e distribuições exploratórias
+Os intervalos atualmente usados são hipóteses computacionais para explorar comportamento:
+- C_p: 0,01–0,30 L/mmHg;
+- R_h: 2–12 mmHg/(L/min);
+- ganho de feedback portal: 0,002–0,05;
+- escala de tau: 0,5–2,0.
+
+Essas faixas não são estimativas populacionais nem priors fundamentados em evidência. Devem ser substituídas ou justificadas por literatura, experimentos ou dados rastreáveis. P05/P50/P95 representam quantis da distribuição preditiva ou posterior do modelo, não intervalos de confiança clínicos.
+
+### 11.5 Limitações e plano de validação
+O modelo permanece reduzido e não calibrado. Não existe dataset clínico associado ao protótipo. Não se deve tratar dados sintéticos, cenários de demonstração ou valores inseridos pelo usuário como observações clínicas. O MCMC só é informativo em relação à qualidade, independência e incerteza das observações fornecidas e à adequação da verossimilhança. Próximos passos: múltiplas cadeias, diagnósticos, testes de recuperação de parâmetros em dados sintéticos, análise de identificabilidade e validação externa.
