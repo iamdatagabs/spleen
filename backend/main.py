@@ -45,7 +45,7 @@ def simulate(request: Request):
     for n in range(steps+1):
         if n%stride==0 or n==steps:
             total=sum(q); portal=q[1]+q[2]+q[3]
-            do2=(portal+.2*total)*18.5/10
+            do2=(portal+.2*total)*185
             timeline.append({"time_min":round(n*p.dt_min,5),"regional_flow_l_min":dict(zip(NAMES,[round(v,6) for v in q])),"total_flow_l_min":round(total,6),"portal_flow_l_min":round(portal,6),"hepatic_oxygen_delivery_ml_min":round(do2,6)})
         q=[v+p.dt_min*(goal[i]-v)/TAU[i] for i,v in enumerate(q)]
     return {"model_version":"0.1.0","method":"explicit_euler","dt_min":p.dt_min,"warnings":["research/education only; not clinically validated"],"timeline":timeline}
