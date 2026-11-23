@@ -38,7 +38,7 @@ jobs:
         run: npm run prepare:frontend
       - name: Package FastAPI sidecar
         run: |
-          pyinstaller --clean --onefile --name spleen-api --distpath desktop/src-tauri/target/release desktop/backend_entry.py
+          pyinstaller --clean --onefile --collect-all uvicorn --collect-all fastapi --collect-all pydantic --name spleen-api --distpath desktop/src-tauri/target/release desktop/backend_entry.py
           Copy-Item desktop/src-tauri/target/release/spleen-api.exe desktop/src-tauri/spleen-api.exe
       - name: Build Windows installers
         working-directory: desktop
