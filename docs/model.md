@@ -99,8 +99,8 @@ Cada parâmetro tem seu intervalo dividido em N estratos equiprováveis; uma amo
 ### 11.2 Monte Carlo
 São sorteados N vetores independentes a partir de distribuições uniformes nos intervalos definidos. A comparação com LHS deve considerar erro de Monte Carlo, estabilidade dos quantis e cobertura do espaço amostral.
 
-### 11.3 Markov Chain Monte Carlo (MCMC)
-Foi implementado um amostrador exploratório Random-Walk Metropolis. O usuário fornece observações no formato:
+### 11.3 Markov Chain Monte Carlo (MCMC) — v0.5.0
+Foi implementado um amostrador exploratório Random-Walk Metropolis com quatro cadeias independentes por padrão (configurável entre 2 e 8 na API). As cadeias usam sementes distintas e inicializações dispersas no espaço a priori. O usuário fornece observações no formato:
 ```json
 [
   {"metric": "portal_pressure_mmhg", "value": 10.0, "sd": 1.0}
@@ -110,7 +110,7 @@ A função de verossimilhança é Gaussiana independente:
 `log L = -1/2 Σ[((y_model - y_obs)/sd)^2] - Σ log(sd)`.
 Os priors são uniformes e limitados aos intervalos paramétricos. A cadeia é inicializada no ponto médio de cada intervalo. O usuário define burn-in, thinning e número de amostras retidas.
 
-A implementação atual é uma cadeia única, sem adaptação de proposta. A taxa de aceitação, por si só, não demonstra convergência. Antes de qualquer interpretação inferencial, devem ser adicionadas múltiplas cadeias independentes, trace plots, diagnóstico R-hat, tamanho efetivo de amostra, autocorrelação e análise de sensibilidade aos priors. O backend expõe `POST /api/v1/mcmc`; LHS e Monte Carlo usam `POST /api/v1/uncertainty` com `method` igual a `lhs` ou `monte_carlo`.
+A resposta inclui amostras por cadeia, taxas de aceitação individuais, R-hat dividido (split-R-hat), ESS aproximado por sequência positiva inicial e autocorrelação de defasagem 1. O painel browser apresenta sumários diagnósticos; o backend retorna também as séries de cada cadeia. O status exploratório usa R-hat < 1,05 e ESS ≥ 100 como limiares operacionais, não como garantia de convergência. As estimativas de ESS são aproximações e não substituem ferramentas especializadas de diagnóstico. O backend expõe `POST /api/v1/mcmc`; LHS e Monte Carlo usam `POST /api/v1/uncertainty` com `method` igual a `lhs` ou `monte_carlo`.
 
 ### 11.4 Intervalos e distribuições exploratórias
 Os intervalos atualmente usados são hipóteses computacionais para explorar comportamento:
@@ -123,3 +123,10 @@ Essas faixas não são estimativas populacionais nem priors fundamentados em evi
 
 ### 11.5 Limitações e plano de validação
 O modelo permanece reduzido e não calibrado. Não existe dataset clínico associado ao protótipo. Não se deve tratar dados sintéticos, cenários de demonstração ou valores inseridos pelo usuário como observações clínicas. O MCMC só é informativo em relação à qualidade, independência e incerteza das observações fornecidas e à adequação da verossimilhança. Próximos passos: múltiplas cadeias, diagnósticos, testes de recuperação de parâmetros em dados sintéticos, análise de identificabilidade e validação externa.
+
+
+### 11.6 Verificação sintética de recuperação — v0.5.0
+
+A suíte automatizada gera saídas sintéticas a partir de um vetor paramétrico conhecido e verifica se o vetor gerador apresenta discrepância nula em relação às próprias saídas, enquanto uma alternativa perturbada apresenta discrepância maior. Este teste verifica consistência do caminho direto e da comparação paramétrica. Como os dados são gerados pelo próprio modelo, não constitui validação independente, demonstração de identificabilidade, nem evidência de que os parâmetros sejam recuperáveis em dados reais.
+
+A recuperação inferencial deve ser aprofundada com experimentos de simulação-estimação (simulation-based calibration), diferentes níveis de ruído, desenho de observações, análise de correlação posterior e avaliação de identificabilidade estrutural/prática. O resultado de convergência MCMC não resolve esses problemas.

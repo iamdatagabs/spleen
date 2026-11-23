@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="SPLEEN API", version="0.4.0")
+app = FastAPI(title="SPLEEN API", version="0.5.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 FRACTIONS = (.18, .62, .13, .07)
 TAU = (1.8, 2.8, 1.5, 2.2)
@@ -67,7 +67,7 @@ def simulate(request: Request):
         q = [max(0.0, v+p.dt_min*(goal[i]-v)/(TAU[i]*p.tau_scale)) for i, v in enumerate(q)]
         portal_pressure = max(HEPATIC_VENOUS_PRESSURE,
                               portal_pressure+p.dt_min*(portal_in-hepatic_out)/p.portal_compliance)
-    return {"model_version": "0.4.0", "method": "explicit_euler_coupled_ode",
+    return {"model_version": "0.5.0", "method": "explicit_euler_coupled_ode",
             "dt_min": p.dt_min, "warnings": ["research/education only; not clinically validated"],
             "timeline": timeline}
 
@@ -139,6 +139,7 @@ class GlobalAnalysisRequest(BaseModel):
     burn_in: int = Field(500, ge=50, le=5000)
     thin: int = Field(2, ge=1, le=50)
     observations: list[dict] = Field(default_factory=list)
+    chains: int = Field(4, ge=2, le=8)
 
 def _uniform_parameters(rng, base, values):
     return base.model_copy(update=values)
@@ -201,16 +202,58 @@ def global_uncertainty(request: GlobalAnalysisRequest):
             "warnings": ["Uniform bounds are exploratory assumptions, not literature-derived distributions.",
                          "Percentiles describe propagated model uncertainty, not clinical confidence intervals."]}
 
+def _split_rhat(chains):
+    """Classical split-R-hat; each chain is split into two halves."""
+    import math
+    split = []
+    for chain in chains:
+        half = len(chain)//2
+        if half < 2:
+            return None
+        split.extend((chain[:half], chain[-half:]))
+    m, n = len(split), len(split[0])
+    means = [sum(x)/n for x in split]
+    variances = [sum((v-means[i])**2 for v in x)/(n-1) for i,x in enumerate(split)]
+    grand = sum(means)/m
+    between = n*sum((v-grand)**2 for v in means)/(m-1)
+    within = sum(variances)/m
+    if within <= 0:
+        return 1.0 if between <= 0 else float("inf")
+    var_hat = ((n-1)/n)*within + between/n
+    return math.sqrt(max(0.0, var_hat/within))
+
+def _autocorrelation(values, lag):
+    n = len(values)
+    mean = sum(values)/n
+    denom = sum((x-mean)**2 for x in values)
+    if denom <= 0:
+        return 0.0
+    return sum((values[i]-mean)*(values[i+lag]-mean) for i in range(n-lag))/denom
+
+def _effective_sample_size(chains):
+    """Conservative initial-positive-sequence ESS approximation."""
+    m, n = len(chains), min(len(c) for c in chains)
+    if n < 4:
+        return float(m*n)
+    rho_sum = 0.0
+    for lag in range(1, min(n//2, 1000)):
+        rho = sum(_autocorrelation(c[:n], lag) for c in chains)/m
+        if rho <= 0:
+            break
+        rho_sum += rho
+    return min(float(m*n), (m*n)/(1+2*rho_sum))
+
 @app.post("/api/v1/mcmc")
 def posterior_mcmc(request: GlobalAnalysisRequest):
-    """Random-walk Metropolis posterior inference against explicitly supplied observations."""
+    """Independent-chain Random-Walk Metropolis with exploratory convergence diagnostics."""
     import math, random
     if not request.observations:
         return {"error": "MCMC requires observations: [{metric, value, sd}, ...]."}
     for obs in request.observations:
-        if obs.get("metric") not in OUTPUT_METRICS or not isinstance(obs.get("value"), (int, float)) or not isinstance(obs.get("sd"), (int, float)) or obs["sd"] <= 0:
+        if (obs.get("metric") not in OUTPUT_METRICS
+            or not isinstance(obs.get("value"), (int, float))
+            or not isinstance(obs.get("sd"), (int, float)) or obs["sd"] <= 0):
             return {"error": "Each observation needs a supported metric, numeric value, and positive sd."}
-    rng = random.Random(request.seed)
     base = request.parameters
     names = tuple(PARAMETER_BOUNDS)
     def likelihood(values):
@@ -220,30 +263,60 @@ def posterior_mcmc(request: GlobalAnalysisRequest):
             z = (row[obs["metric"]] - obs["value"]) / obs["sd"]
             ll += -.5*z*z - math.log(obs["sd"])
         return ll, row
-    current = {name: (lo+hi)/2 for name, (lo, hi) in PARAMETER_BOUNDS.items()}
-    current_ll, current_out = likelihood(current)
-    chain, output_chain, accepted = [], [], 0
-    total = request.burn_in + request.samples*request.thin
-    proposal_sd = {name: (hi-lo)*.06 for name, (lo, hi) in PARAMETER_BOUNDS.items()}
-    for iteration in range(total):
-        proposal = {name: current[name] + rng.gauss(0, proposal_sd[name]) for name in names}
-        in_bounds = all(PARAMETER_BOUNDS[name][0] <= proposal[name] <= PARAMETER_BOUNDS[name][1] for name in names)
-        if in_bounds:
-            proposed_ll, proposed_out = likelihood(proposal)
-            if math.log(max(rng.random(), 1e-300)) < proposed_ll-current_ll:
-                current, current_ll, current_out = proposal, proposed_ll, proposed_out
-                accepted += 1
-        if iteration >= request.burn_in and (iteration-request.burn_in) % request.thin == 0:
-            chain.append(dict(current))
-            output_chain.append({k: current_out[k] for k in OUTPUT_METRICS})
-    return {"model_version": "0.4.0", "method": "random_walk_metropolis",
+    def run_chain(chain_id):
+        rng = random.Random(request.seed + 104729*chain_id)
+        current = {}
+        for name, (lo, hi) in PARAMETER_BOUNDS.items():
+            # Dispersed deterministic starts; remain inside the uniform prior.
+            fraction = ((chain_id + 1) / (request.chains + 1))
+            current[name] = lo + (hi-lo)*fraction
+        current_ll, current_out = likelihood(current)
+        chain, output_chain, accepted = [], [], 0
+        total = request.burn_in + request.samples*request.thin
+        proposal_sd = {name: (hi-lo)*.06 for name, (lo, hi) in PARAMETER_BOUNDS.items()}
+        for iteration in range(total):
+            proposal = {name: current[name] + rng.gauss(0, proposal_sd[name]) for name in names}
+            inside = all(PARAMETER_BOUNDS[name][0] <= proposal[name] <= PARAMETER_BOUNDS[name][1] for name in names)
+            if inside:
+                proposed_ll, proposed_out = likelihood(proposal)
+                if math.log(max(rng.random(), 1e-300)) < proposed_ll-current_ll:
+                    current, current_ll, current_out = proposal, proposed_ll, proposed_out
+                    accepted += 1
+            if iteration >= request.burn_in and (iteration-request.burn_in) % request.thin == 0:
+                chain.append(dict(current))
+                output_chain.append({k: current_out[k] for k in OUTPUT_METRICS})
+        return chain, output_chain, accepted/total
+
+    results = [run_chain(i) for i in range(request.chains)]
+    parameter_chains = [[row[name] for row in item[0]] for name in names for item in []]
+    parameter_diagnostics = {}
+    for name in names:
+        series = [[row[name] for row in item[0]] for item in results]
+        rhat = _split_rhat(series)
+        ess = _effective_sample_size(series)
+        acf1 = sum(_autocorrelation(c, 1) for c in series)/len(series) if len(series[0]) > 1 else None
+        parameter_diagnostics[name] = {"r_hat": rhat, "ess": ess, "autocorrelation_lag1": acf1}
+    pooled_outputs = [row for item in results for row in item[1]]
+    pooled_params = [row for item in results for row in item[0]]
+    max_rhat = max((d["r_hat"] for d in parameter_diagnostics.values() if d["r_hat"] is not None), default=float("inf"))
+    min_ess = min(d["ess"] for d in parameter_diagnostics.values())
+    converged = max_rhat < 1.05 and min_ess >= 100
+    return {"model_version": "0.5.0", "method": "multi_chain_random_walk_metropolis",
             "sampling": "posterior conditional on supplied Gaussian observation errors and uniform bounded priors",
-            "samples": len(chain), "burn_in": request.burn_in, "thin": request.thin,
-            "acceptance_rate": accepted/total, "parameter_bounds": PARAMETER_BOUNDS,
-            "posterior_summary": _summarize(output_chain),
-            "parameter_summary": {name: _quantiles([x[name] for x in chain]) for name in names},
-            "parameter_samples": chain, "output_samples": output_chain,
+            "chains": request.chains, "samples_per_chain": request.samples,
+            "total_samples": len(pooled_params), "burn_in_per_chain": request.burn_in, "thin": request.thin,
+            "acceptance_rates": [item[2] for item in results],
+            "parameter_bounds": PARAMETER_BOUNDS,
+            "posterior_summary": _summarize(pooled_outputs),
+            "parameter_summary": {name: _quantiles([x[name] for x in pooled_params]) for name in names},
+            "diagnostics": {"parameters": parameter_diagnostics, "max_r_hat": max_rhat,
+                            "min_ess": min_ess, "thresholds": {"r_hat": 1.05, "ess": 100},
+                            "status": "exploratory_pass" if converged else "not_converged_or_insufficient_ess"},
+            "chain_samples": [[{k: row[k] for k in names} for row in item[0]] for item in results],
+            "parameter_samples": pooled_params, "output_samples": pooled_outputs,
             "observations": request.observations,
-            "warnings": ["Posterior results depend on the supplied observations, stated standard deviations, priors and proposal settings.",
-                         "Check convergence with multiple chains, trace plots, effective sample size and R-hat before scientific inference.",
-                         "This implementation is an exploratory single-chain Metropolis sampler, not a validated clinical inference pipeline."]}
+            "warnings": ["R-hat and ESS are approximate diagnostics; passing thresholds is not proof of model validity.",
+                         "Single-parameter diagnostics do not establish identifiability or exclude multimodality.",
+                         "Results depend on observations, stated standard deviations, uniform bounds and proposal settings.",
+                         "This is exploratory computational inference, not a validated clinical pipeline."]}
+
