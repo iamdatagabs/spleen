@@ -1,0 +1,46 @@
+% F02 — Arquitetura compartimental matemática do protótipo SPLEEN.
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  >=Latex,
+  input/.style={draw=violet!65!black,fill=violet!5,rounded corners=3pt,minimum width=2.5cm,minimum height=0.78cm,align=center,thick},
+  state/.style={draw=blue!60!black,fill=blue!4,rounded corners=3pt,minimum width=2.5cm,minimum height=0.86cm,align=center,thick},
+  portal/.style={draw=teal!70!black,fill=teal!5,rounded corners=3pt,minimum width=3.2cm,minimum height=1.0cm,align=center,thick},
+  output/.style={draw=orange!75!black,fill=orange!7,rounded corners=3pt,minimum width=2.6cm,minimum height=0.8cm,align=center,thick},
+  arrow/.style={-{Latex},line width=1pt,draw=blue!65!black},
+  pflow/.style={-{Latex},line width=1.15pt,draw=teal!75!black},
+  feedback/.style={-{Latex},dashed,line width=0.9pt,draw=orange!80!black},
+  lab/.style={font=\scriptsize,fill=white,inner sep=1.5pt,align=center}
+]
+\node[input] (u) at (0,2.3) {Entradas\\PAM, pneumoperitônio,\\volemia, índice vasoativo};
+\node[state] (qe) at (4.0,3.4) {$Q_e(t)$\\Fluxo gástrico};
+\node[state] (qi) at (4.0,1.8) {$Q_{\mathrm{int}}(t)$\\Fluxo intestinal};
+\node[state] (qb) at (4.0,0.2) {$Q_b(t)$\\Fluxo esplênico};
+\node[state] (qp) at (4.0,-1.4) {$Q_{\mathrm{panc}}(t)$\\Fluxo pancreático};
+\node[portal] (vp) at (8.8,0.0) {$P_p(t)$\\Compartimento portal\\$C_p\,\dot P_p=Q_{\mathrm{portal,in}}-Q_{\mathrm{portal,out}}$};
+\node[output] (out) at (13.0,0.0) {Saídas\\fluxos regionais,\\pressão portal, oferta O$_2$};
+\node[output] (targets) at (0,-1.2) {Funções de alvo\\$Q_i^*(\mathbf u,P_p;\theta)$};
+\draw[arrow] (u.east) -- ++(0.7,0) |- (qe.west);
+\draw[arrow] (u.east) -- ++(0.7,0) |- (qi.west);
+\draw[arrow] (u.east) -- ++(0.7,0) |- (qb.west);
+\draw[arrow] (u.east) -- ++(0.7,0) |- (qp.west);
+\draw[arrow] (targets.north) -- ++(0,0.45) -| (qi.south);
+\draw[arrow] (targets.north) -- ++(0,0.45) -| (qe.south);
+\draw[arrow] (targets.east) -- ++(0.55,0) |- (qb.west);
+\draw[arrow] (targets.east) -- ++(0.55,0) |- (qp.west);
+\draw[pflow] (qi.east) -- node[lab,above]{contribui para $Q_{\mathrm{portal,in}}$} (vp.west);
+\draw[pflow] (qb.east) -- ++(0.65,0) |- (vp.west);
+\draw[pflow] (qp.east) -- ++(0.65,0) |- (vp.west);
+\draw[arrow] (qe.east) -- ++(0.8,0) |- node[lab,pos=0.2,above]{estado regional} (out.west);
+\draw[arrow] (qi.east) -- ++(0.8,0) |- (out.west);
+\draw[arrow] (qb.east) -- ++(0.8,0) |- (out.west);
+\draw[arrow] (qp.east) -- ++(0.8,0) |- (out.west);
+\draw[pflow] (vp.east) -- node[lab,above]{$Q_{\mathrm{portal,out}}$} (out.west);
+\draw[feedback] (vp.north) -- ++(0,1.25) -| node[lab,pos=0.25,above]{retroalimentação por $P_p$} (targets.north);
+\node[lab,anchor=north west] at (0,-2.55) {Para cada leito: $\displaystyle \dot Q_i=(Q_i^*-Q_i)/(\tau_i s_\tau)$.};
+\node[lab,anchor=north west] at (7.0,-2.55) {Saída portal simplificada: $\displaystyle Q_{\mathrm{portal,out}}=\max\{0,(P_p-P_{\mathrm{hv}})/R_h\}$.};
+\end{tikzpicture}
+\caption{Arquitetura compartimental matemática do SPLEEN. Os quatro fluxos regionais são estados dinâmicos; os leitos intestinal, esplênico e pancreático alimentam a entrada portal simplificada. A pressão portal retroage sobre os alvos regionais. A oferta hepática de oxigênio é uma saída derivada e não um estado independente neste esquema.}
+\label{fig:f02-arquitetura-spleen}
+\end{figure}
