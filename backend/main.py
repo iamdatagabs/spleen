@@ -204,6 +204,7 @@ def global_uncertainty(request: GlobalAnalysisRequest):
 
 def _split_rhat(chains):
     """Classical split-R-hat; each chain is split into two halves."""
+    import math
     split = []
     for chain in chains:
         half = len(chain)//2
