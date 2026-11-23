@@ -9,13 +9,13 @@ GitHub Pages is enabled and the initial deployment completed successfully. Open 
 
 The latest commits may still be propagating while their Actions runs finish. [Deployment history](https://github.com/iamdatagabs/spleen/actions).
 
-## Current model — v0.9.0
+## Current model — v1.0.0
 - Four regional arterial flow compartments (stomach, intestine, spleen and pancreas).
 - Coupled portal pressure compartment with compliance and hepatic outflow resistance.
 - Simplified feedback from portal pressure to regional target flow.
 - Derived portal inflow, hepatic outflow, hepatic arterial flow and hepatic oxygen-delivery indicator.
 - Browser simulation, time-series chart, CSV export, and an interactive global-uncertainty workspace.
-- Interactive Three.js parametric 3D spleen surface with arterial/venous tree and three parallel computational vascular territories. Relative resistance controls redistribute the aggregate splenic flow while preserving flow conservation.
+- Interactive Three.js parametric 3D spleen surface with arterial/venous tree and three transient computational vascular territories with local pressure storage, venous outflow and illustrative arterial/venous pressure profiles along serial branches.
 - Browser-side LHS, Monte Carlo and exploratory four-chain MCMC with split-R-hat, approximate ESS and lag-1 autocorrelation diagnostics, with P05/P50/P95 summaries and CSV export.
 - Python API endpoints: `POST /api/v1/sensitivity`, `POST /api/v1/uncertainty` (LHS/Monte Carlo) and `POST /api/v1/mcmc` (requires observations).
 - Python/FastAPI reference implementation with configurable structural parameters and a local OAT sensitivity endpoint (`POST /api/v1/sensitivity`).
@@ -76,3 +76,5 @@ These analyses are computational diagnostics using the current simplified model.
 
 
 - Transient three-territory splenic Windkessel layer: regional pressure storage and venous outflow feed the portal compartment; illustrative resistance/compliance parameters only.
+
+- Distributed arterial and venous pressure profiles for each splenic territory; intermediate branch pressures are interpolated for visualization and are not anatomically calibrated.
