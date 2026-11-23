@@ -116,4 +116,14 @@ O experimento sintético de recuperação gera observações a partir de parâme
 \section{Limitações e uso}
 O modelo não representa microcirculação, autorregulação validada, controle neural/hormonal, retorno venoso completo, farmacocinética, heterogeneidade espacial ou anatomia individual. Os coeficientes são ilustrativos. Não há calibração ou validação independente. O SPLEEN destina-se exclusivamente a pesquisa metodológica e educação; não deve orientar diagnóstico, prescrição ou decisão intraoperatória.
 
+
+\section{Camada espacial 3D vinculada aos estados territoriais}
+A visualização Three.js consome, para cada território esplênico, os estados de fluxo arterial de entrada, fluxo venoso de saída e pressão compartimental. A transformação visual é mantida separada do motor fisiológico:
+\begin{align}
+r_{a,i}^{vis} &= r_{a,0}+k_a\sqrt{Q_{a,i}/Q_{ref}},\\
+r_{v,i}^{vis} &= r_{v,0}+k_v\sqrt{Q_{v,i}/Q_{ref}},\\
+s_{a,i}^{vis} &= \operatorname{clip}\left(s_0\sqrt{Q_{a,i}/Q_{ref}},s_{min},s_{max}\right),\\
+s_{v,i}^{vis} &= \operatorname{clip}\left(s_0\sqrt{Q_{v,i}/Q_{ref}},s_{min},s_{max}\right).
+\end{align}
+Os raios $r^{vis}$, velocidades gráficas $s^{vis}$ e classes cromáticas de pressão são parâmetros de renderização, não propriedades físicas adicionais do modelo. A classe cromática compara $P_i$ com uma referência computacional configurável e não representa faixa clínica. A camada 3D não resolve campos espaciais de pressão, equações de Navier--Stokes, transporte de oxigênio ou microcirculação.
 \end{document}
