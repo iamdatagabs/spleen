@@ -9,7 +9,7 @@ GitHub Pages is enabled and the initial deployment completed successfully. Open 
 
 The latest commits may still be propagating while their Actions runs finish. [Deployment history](https://github.com/iamdatagabs/spleen/actions).
 
-## Current model — v0.8.0
+## Current model — v0.9.0
 - Four regional arterial flow compartments (stomach, intestine, spleen and pancreas).
 - Coupled portal pressure compartment with compliance and hepatic outflow resistance.
 - Simplified feedback from portal pressure to regional target flow.
@@ -73,3 +73,6 @@ MIT (prototype code).
 - Synthetic parameter recovery / preliminary importance-sampling rank check: `POST /api/v1/synthetic-recovery`.
 
 These analyses are computational diagnostics using the current simplified model. They do not establish physiological validity, clinical calibration, structural identifiability or formal SBC validity.
+
+
+- Transient three-territory splenic Windkessel layer: regional pressure storage and venous outflow feed the portal compartment; illustrative resistance/compliance parameters only.
