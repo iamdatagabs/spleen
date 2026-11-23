@@ -2,6 +2,7 @@
 % Inclua no documento principal após carregar TikZ e as bibliotecas necessárias.
 \begin{figure}[htbp]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   font=\small,
   >=Latex,
@@ -38,7 +39,8 @@ Setas verdes: drenagem venosa portal e saída hepática.\\
 Linha tracejada: drenagem gástrica portal anatômica, não incluída na soma simplificada de entrada portal usada na versão atual do SPLEEN.};
 \node[note,anchor=north east] at (14.6,-3.15) {\textbf{Atenção à abstração}\\
 A anatomia venosa é mais complexa do que quatro leitos independentes. O desenho é funcional e esquemático; não representa calibres, distâncias, proporções de fluxo nem variações anatômicas.};
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{Arquitetura anatômico-funcional simplificada da circulação esplâncnica e portal. O modelo atual agrega quatro leitos arteriais; a drenagem gástrica é indicada para preservar a referência anatômica, embora não componha a expressão simplificada de entrada portal implementada no protótipo.}
 \label{fig:f01-circulacao-esplancnica}
 \end{figure}
