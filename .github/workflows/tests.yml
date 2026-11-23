@@ -15,6 +15,8 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+      - name: Check browser JavaScript syntax
+        run: node --check ../analysis.js && node --check ../app.js
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
