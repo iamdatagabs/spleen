@@ -11,7 +11,7 @@
     const map=Number(state.inputs.map),iap=Number(state.inputs.pneu),app=map-iap;
     const total=Number(state.totalFlow),portal=Number(state.portalPressure);
     const spleen=Number(state.regionalFlows.spleen);
-    const spleenIndex=100*spleen/.156,totalIndex=100*total/1.2;
+    const spleenIndex=100*spleen/.156,totalIndex=100*total/1.2;\n    const spatialModel=$("spleen3d");\n    if(spatialModel){const flowScale=Math.max(.2,Math.min(1.8,spleen/.156));spatialModel.style.setProperty("--flow-scale",flowScale.toFixed(3));spatialModel.style.setProperty("--portal-load",Math.max(.2,Math.min(1.8,portal/10)).toFixed(3));}\n    $("spleen3dFlow").textContent=fmt(spleen,3)+" L/min";\n    $("spleen3dPerfusion").textContent=fmt(spleenIndex,0)+"%";\n    $("spleen3dPortal").textContent=fmt(portal,1)+" mmHg";
     const portalGradient=portal-5;
     const gastricPortal=Number(state.portalInflowComponents?.stomach ?? 0);
     const gastricSystemic=Number(state.gastricSystemicReturn ?? 0);
@@ -43,10 +43,10 @@
   ["map","pneu","vaso","blood","gastricPortalPct","duration"].forEach(id=>$(id)?.addEventListener("input",()=>requestAnimationFrame(update)));
   const model=$("spleen3d");
   if(model){
-    let dragging=false,lastX=0,lastY=0,rx=12,ry=-18;
+    let dragging=false,lastX=0,lastY=0,rx=12,ry=-18;\n    const resetView=()=>{rx=12;ry=-18;model.style.animation="spleenFloat 8s ease-in-out infinite";model.style.transform="rotateX(12deg) rotateY(-18deg)";};\n    $("spleenViewReset")?.addEventListener("click",resetView);
     model.addEventListener("pointerdown",e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;model.setPointerCapture(e.pointerId);});
     model.addEventListener("pointermove",e=>{if(!dragging)return;ry+=(e.clientX-lastX)*.45;rx=Math.max(-15,Math.min(45,rx-(e.clientY-lastY)*.35));lastX=e.clientX;lastY=e.clientY;model.style.animation="none";model.style.transform="rotateX("+rx+"deg) rotateY("+ry+"deg)";});
-    model.addEventListener("pointerup",()=>dragging=false);
+    model.addEventListener("pointerup",()=>dragging=false);\n    model.addEventListener("lostpointercapture",()=>dragging=false);
     model.addEventListener("pointercancel",()=>dragging=false);
   }
   update();
