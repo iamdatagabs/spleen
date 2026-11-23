@@ -103,6 +103,7 @@ if(host&&canvas){
       const input=document.getElementById("r"+name);
       input?.addEventListener("input",()=>{resistances[i]=Number(input.value);updateCompartments();});
     });
+    document.getElementById("resetTerritories")?.addEventListener("click",()=>{resistances=[1,1,1];["Superior","Middle","Inferior"].forEach(name=>{const input=document.getElementById("r"+name);if(input)input.value="1";});updateCompartments();});
     window.updateSpleenSpatialState=next=>{state=next;updateCompartments();};
     if(state)updateCompartments();
     const clock=new THREE.Clock();
