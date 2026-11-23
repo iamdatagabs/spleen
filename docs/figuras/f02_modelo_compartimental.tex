@@ -1,6 +1,7 @@
 % F02 — Arquitetura compartimental matemática do protótipo SPLEEN.
 \begin{figure}[htbp]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   font=\small,
   >=Latex,
@@ -40,7 +41,8 @@
 \draw[feedback] (vp.north) -- ++(0,1.25) -| node[lab,pos=0.25,above]{retroalimentação por $P_p$} (targets.north);
 \node[lab,anchor=north west] at (0,-2.55) {Para cada leito: $\displaystyle \dot Q_i=(Q_i^*-Q_i)/(\tau_i s_\tau)$.};
 \node[lab,anchor=north west] at (7.0,-2.55) {Saída portal simplificada: $\displaystyle Q_{\mathrm{portal,out}}=\max\{0,(P_p-P_{\mathrm{hv}})/R_h\}$.};
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{Arquitetura compartimental matemática do SPLEEN. Os quatro fluxos regionais são estados dinâmicos; os leitos intestinal, esplênico e pancreático alimentam a entrada portal simplificada. A pressão portal retroage sobre os alvos regionais. A oferta hepática de oxigênio é uma saída derivada e não um estado independente neste esquema.}
 \label{fig:f02-arquitetura-spleen}
 \end{figure}
