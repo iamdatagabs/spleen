@@ -214,3 +214,39 @@ def test_gastric_portal_fraction_one_routes_all_gastric_flow_to_portal():
     assert math.isclose(result["gastric_portal_inflow_l_min"],
                         result["regional_flow_l_min"]["stomach"], abs_tol=1e-6)
     assert result["gastric_systemic_return_l_min"] == 0
+
+
+def test_splenic_territory_windkessel_baseline_is_conservative():
+    result = final_state(Parameters(duration_min=20, dt_min=0.025))
+    territories = result["splenic_territories"]
+    assert len(territories) == 3
+    assert math.isclose(sum(x["arterial_inflow_l_min"] for x in territories),
+                        result["regional_flow_l_min"]["spleen"], abs_tol=1e-6)
+    assert math.isclose(sum(x["venous_outflow_l_min"] for x in territories),
+                        result["regional_flow_l_min"]["spleen"], abs_tol=1e-6)
+    assert all(math.isclose(x["pressure_mmhg"], 10.0, abs_tol=1e-6) for x in territories)
+
+
+def test_splenic_resistance_asymmetry_creates_transient_pressure_and_outflow_redistribution():
+    result = simulate(Request(parameters=Parameters(
+        duration_min=8, dt_min=0.01,
+        splenic_resistance_superior=2.0,
+        splenic_resistance_middle=1.0,
+        splenic_resistance_inferior=.5
+    )))
+    first, last = result["timeline"][0], result["timeline"][-1]
+    assert first["splenic_territories"][0]["pressure_mmhg"] == 10.0
+    assert last["splenic_territories"][0]["pressure_mmhg"] > last["splenic_territories"][2]["pressure_mmhg"]
+    assert math.isclose(sum(x["arterial_inflow_l_min"] for x in last["splenic_territories"]),
+                        last["regional_flow_l_min"]["spleen"], abs_tol=1e-6)
+    assert math.isclose(sum(x["venous_outflow_l_min"] for x in last["splenic_territories"]),
+                        last["splenic_venous_outflow_l_min"], abs_tol=1e-6)
+
+
+def test_splenic_venous_outflow_drives_portal_inflow_without_double_counting():
+    result = final_state(Parameters(duration_min=10, dt_min=0.025,
+                                    splenic_resistance_superior=1.8))
+    regional = result["regional_flow_l_min"]
+    expected = (result["gastric_portal_inflow_l_min"] + regional["intestine"]
+                + regional["pancreas"] + result["splenic_venous_outflow_l_min"])
+    assert math.isclose(result["portal_inflow_l_min"], expected, abs_tol=1e-6)
