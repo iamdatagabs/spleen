@@ -49,3 +49,5 @@
 .territory-controls label>small{display:block;color:var(--muted);font-size:9px}
 .territory-controls label>small strong{color:var(--teal);font-size:11px}
 @media(max-width:600px){.spleen-stage{height:300px}.spleen-3d{height:260px}.territory-controls{grid-template-columns:1fr}.territory-controls label{padding:8px}}
+
+.spleen3d-fallback[hidden]{display:none!important}.territory-subtitle{display:block;color:var(--muted);font-size:9px;margin:-5px 0 8px}
