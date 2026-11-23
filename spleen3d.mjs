@@ -1,5 +1,6 @@
 import { distributeTerritoryFlow, territoryVisualMetrics } from "./spatial-model.mjs";
-import { calculateTerritoryOxygen, sampleOxygenField } from "./oxygen-transport.mjs";
+import { calculateTerritoryOxygen } from "./oxygen-transport.mjs";
+import { solveTissueOxygen, sampleTissuePO2 } from "./tissue-oxygen.mjs";
 
 const host=document.getElementById("spleen3d"),canvas=document.getElementById("spleen3dCanvas"),fallback=document.getElementById("spleen3dFallback");
 if(host&&canvas){
@@ -23,7 +24,24 @@ if(host&&canvas){
     const zoneMeshes=[],pressureNodes=[];
     const oxygenCenters=territories.map(t=>({x:t.center.x,y:t.center.y,z:t.center.z}));
     const oxygenLow=new THREE.Color("#ef626b"),oxygenMid=new THREE.Color("#f4bd67"),oxygenHigh=new THREE.Color("#58d6c2");
-    const updateOxygenSurface=()=>{const colors=geometry.attributes.color;for(let i=0;i<pos.count;i++){const ratio=sampleOxygenField({x:pos.getX(i),y:pos.getY(i),z:pos.getZ(i)},territoryState,oxygenCenters);const color=ratio<.7?oxygenLow.clone().lerp(oxygenMid,Math.max(0,ratio/.7)):oxygenMid.clone().lerp(oxygenHigh,Math.min(1,(ratio-.7)/.3));colors.setXYZ(i,color.r,color.g,color.b);}colors.needsUpdate=true;};
+    let tissueOxygenField=null;
+    const updateOxygenSurface=()=>{
+      tissueOxygenField=solveTissueOxygen(territoryState,{durationSeconds:180,dt:1});
+      const colors=geometry.attributes.color,low=new THREE.Color("#ef626b"),mid=new THREE.Color("#f4bd67"),high=new THREE.Color("#58d6c2");
+      for(let i=0;i<pos.count;i++){
+        const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);
+        const pO2=sampleTissuePO2(tissueOxygenField,{x:x/1.38*60,y:y/.79*40,z:z/.52*25});
+        const value=pO2===null?40:pO2;
+        const color=value<25?low.clone().lerp(mid,Math.max(0,value/25)):mid.clone().lerp(high,Math.min(1,(value-25)/45));
+        colors.setXYZ(i,color.r,color.g,color.b);
+      }
+      colors.needsUpdate=true;
+      const stats=tissueOxygenField.stats;
+      const mean=document.getElementById("tissuePO2Mean"),range=document.getElementById("tissuePO2Range"),time=document.getElementById("tissuePO2Time");
+      if(mean)mean.textContent=stats.meanPO2.toFixed(1).replace(".",",")+" mmHg";
+      if(range)range.textContent=stats.minPO2.toFixed(1).replace(".",",")+"–"+stats.maxPO2.toFixed(1).replace(".",",")+" mmHg";
+      if(time)time.textContent=stats.simulatedSeconds.toFixed(0)+" s · "+stats.steps+" passos";
+    };
     territories.forEach(t=>{const zone=new THREE.Mesh(new THREE.SphereGeometry(t.radius,32,24),new THREE.MeshPhysicalMaterial({color:t.color,transparent:true,opacity:.25,roughness:.25,metalness:.05,depthWrite:false,emissive:t.color,emissiveIntensity:.12}));zone.position.copy(t.center);zone.scale.set(1.2,.85,.58);organ.add(zone);zoneMeshes.push(zone);const node=new THREE.Mesh(new THREE.SphereGeometry(.075,20,16),new THREE.MeshStandardMaterial({color:"#58d6c2",emissive:"#58d6c2",emissiveIntensity:.35,roughness:.3}));node.position.copy(t.center).add(new THREE.Vector3(0,0,.12));organ.add(node);pressureNodes.push(node);});
     const tube=(points,radius,color,parent=vascular)=>{const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const material=new THREE.MeshStandardMaterial({color,roughness:.34,metalness:.04,emissive:color,emissiveIntensity:.18});const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,48,radius,10,false),material);parent.add(mesh);return{mesh,curve,material};};
     tube([[-2.05,.05,.12],[-1.55,.04,.16],[-1.12,.02,.2],[-.78,0,.25]],.065,"#ff746d");

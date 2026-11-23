@@ -9,7 +9,7 @@ GitHub Pages is enabled and the initial deployment completed successfully. Open 
 
 The latest commits may still be propagating while their Actions runs finish. [Deployment history](https://github.com/iamdatagabs/spleen/actions).
 
-## Current model — v1.1.0 spatial preview
+## Current model — v1.3.0 tissue oxygen reaction-diffusion
 - Four regional arterial flow compartments (stomach, intestine, spleen and pancreas).
 - Coupled portal pressure compartment with compliance and hepatic outflow resistance.
 - Simplified feedback from portal pressure to regional target flow.
@@ -85,3 +85,7 @@ These analyses are computational diagnostics using the current simplified model.
 
 ## Spatial oxygen delivery — v1.2.0
 The 3D spleen view now reports regional convective oxygen delivery ($DO_2 = 10\,Q_a\,C_{aO_2}$) for its three reduced-order territories. Territory shading combines relative pressure and oxygen-delivery indices; the dashboard exposes mL O₂/min and percentage of a computational reference. Gaussian interpolation colors the parametric organ surface as a dimensionless visualization field, not as a tissue oxygenation or oxygen-diffusion solver. The model does not calculate oxygen extraction, consumption, hypoxia, or cellular availability. Outputs remain experimental and must not guide clinical decisions.
+
+
+## Tissue oxygen reaction-diffusion — v1.3.0
+A 3D tissue layer now solves a reduced-order reaction-diffusion equation for tissue oxygen partial pressure (pO₂), with distributed perfusion supply, effective diffusion, and saturable consumption. A finite-difference 3D grid is advanced with explicit Euler integration and a checked stability bound; the parametric spleen surface samples the resulting field. This is a phenomenological research prototype: it does not resolve individual vessels, hemoglobin dissociation, measured cellular metabolism, capillary extraction, or clinical hypoxia. Parameters are illustrative and outputs are not for clinical decision-making.

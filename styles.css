@@ -54,3 +54,9 @@
 
 /* Spatial hemodynamics v1.1 — pressure legend */
 .pressure-legend{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 4px;color:var(--muted);font-size:9px}.pressure-legend span{display:inline-flex;align-items:center;gap:5px}.pressure-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px currentColor}.pressure-low{background:#69a9ff;color:#69a9ff}.pressure-reference{background:#58d6c2;color:#58d6c2}.pressure-raised{background:#f4bd67;color:#f4bd67}.pressure-high{background:#ef626b;color:#ef626b}
+
+.tissue-oxygen-panel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;padding:14px;background:#0b1925;border:1px solid var(--line);border-radius:8px}
+.tissue-oxygen-panel span,.tissue-oxygen-panel small{display:block;color:var(--muted);font-size:10px}
+.tissue-oxygen-panel b{display:block;margin-top:6px;color:var(--teal);font-size:18px;font-variant-numeric:tabular-nums}
+.tissue-oxygen-panel small{grid-column:1/-1;font-size:9px}
+@media(max-width:600px){.tissue-oxygen-panel{grid-template-columns:1fr}}

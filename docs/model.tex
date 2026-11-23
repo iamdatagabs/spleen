@@ -136,4 +136,18 @@ DO_{2,i}=10\,Q_{a,i}\,C_{aO_2},
 com $Q_{a,i}$ em L/min, $C_{aO_2}$ em mL O$_2$/dL e $DO_{2,i}$ em mL O$_2$/min. O fator 10 realiza a conversão de litros para decilitros. O índice relativo é $DO_{2,i}/DO_{2,ref}$, em que $DO_{2,ref}=10 Q_{ref} C_{aO_2,ref}$ é uma referência computacional declarada. Os valores padrão são ilustrativos.
 
 A representação espacial utiliza interpolação gaussiana dos índices territoriais para colorir os vértices da superfície paramétrica. Essa operação é exclusivamente gráfica. Não constitui solução de uma equação de advecção-difusão-reação, não calcula extração ou consumo de oxigênio e não permite inferir oxigenação tecidual, hipóxia ou disponibilidade intracelular.
+
+
+\section{Campo tridimensional de pO$_2$ tecidual — v1.3}
+A pressão parcial tecidual $P_t$ é aproximada pela equação de reação-difusão:
+\[
+\frac{\partial P_t}{\partial t}
+=D\nabla^2P_t+k_{perf}(\mathbf{x})(P_{aO_2}-P_t)
+-V_{max}\frac{P_t}{K_m+P_t}.
+\]
+O termo difusivo usa $D$ em mm$^2$/s; $k_{perf}$ tem unidade s$^{-1}$; $V_{max}$ é expresso em mmHg/s; $K_m$, $P_t$ e $P_{aO_2}$ são expressos em mmHg. O campo de perfusão é uma interpolação gaussiana dos fluxos arteriais dos três territórios. O domínio elipsoidal simplificado utiliza condição de contorno de fluxo difusivo normal nulo.
+
+A discretização é feita por diferenças finitas em três dimensões e integração temporal de Euler explícito. O passo é limitado por estimativas de estabilidade dos termos difusivo e reativo. O campo é interpolado trilinearmente nos vértices da superfície paramétrica para a visualização.
+
+Esta formulação é fenomenológica e de ordem reduzida. Não resolve vasos individuais, advecção intravascular, hematócrito, curva de dissociação da hemoglobina, extração capilar explícita ou metabolismo celular medido. Os parâmetros são demonstrativos; o campo não constitui diagnóstico de hipóxia/isquemia nem deve orientar decisões clínicas. A camada v1.3 passa a fornecer o campo espacial de pO$_2$; a camada v1.2 de entrega convectiva $DO_2$ permanece como indicador distinto.
 \end{document}
