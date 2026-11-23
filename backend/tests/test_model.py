@@ -13,8 +13,8 @@ def final_state(payload):
 def test_baseline_equilibrium_is_preserved():
     result = final_state(Parameters(duration_min=20, dt_min=0.025))
     assert math.isclose(result["total_flow_l_min"], 1.2, rel_tol=0, abs_tol=1e-8)
-    assert math.isclose(result["portal_inflow_l_min"], 0.984, rel_tol=0, abs_tol=1e-8)
-    assert math.isclose(result["hepatic_portal_outflow_l_min"], 0.984, rel_tol=0, abs_tol=1e-8)
+    assert math.isclose(result["portal_inflow_l_min"], 1.1784, rel_tol=0, abs_tol=1e-8)
+    assert math.isclose(result["hepatic_portal_outflow_l_min"], 1.1784, rel_tol=0, abs_tol=1e-8)
     assert math.isclose(result["portal_pressure_mmhg"], 10.0, rel_tol=0, abs_tol=1e-8)
 
 
@@ -175,6 +175,7 @@ def test_portal_inflow_matches_current_modelled_draining_compartments():
     result = final_state(Parameters(duration_min=8, dt_min=0.025))
     regional = result["regional_flow_l_min"]
     expected = regional["intestine"] + regional["spleen"] + regional["pancreas"]
+    expected += result["gastric_portal_inflow_l_min"]
     assert math.isclose(result["portal_inflow_l_min"], expected, rel_tol=0, abs_tol=1e-6)
 
 
@@ -189,3 +190,27 @@ def test_hepatic_oxygen_delivery_uses_flow_and_content_conversion():
     result = final_state(Parameters(duration_min=12, dt_min=0.025))
     expected = (result["hepatic_portal_outflow_l_min"] + result["hepatic_arterial_flow_l_min"]) * 185.0
     assert math.isclose(result["hepatic_oxygen_delivery_ml_min"], expected, rel_tol=0, abs_tol=1e-5)
+
+
+def test_gastric_venous_return_is_partitioned_without_double_counting():
+    result = final_state(Parameters(duration_min=8, dt_min=0.025, gastric_portal_fraction=0.90))
+    stomach = result["regional_flow_l_min"]["stomach"]
+    portal = result["gastric_portal_inflow_l_min"]
+    systemic = result["gastric_systemic_return_l_min"]
+    assert math.isclose(portal, 0.90 * stomach, rel_tol=0, abs_tol=1e-6)
+    assert math.isclose(systemic, 0.10 * stomach, rel_tol=0, abs_tol=1e-6)
+    assert math.isclose(portal + systemic, stomach, rel_tol=0, abs_tol=1e-6)
+
+
+def test_gastric_portal_fraction_zero_excludes_gastric_flow_from_portal_return():
+    result = final_state(Parameters(duration_min=8, dt_min=0.025, gastric_portal_fraction=0.0))
+    assert result["gastric_portal_inflow_l_min"] == 0
+    assert math.isclose(result["gastric_systemic_return_l_min"],
+                        result["regional_flow_l_min"]["stomach"], abs_tol=1e-6)
+
+
+def test_gastric_portal_fraction_one_routes_all_gastric_flow_to_portal():
+    result = final_state(Parameters(duration_min=8, dt_min=0.025, gastric_portal_fraction=1.0))
+    assert math.isclose(result["gastric_portal_inflow_l_min"],
+                        result["regional_flow_l_min"]["stomach"], abs_tol=1e-6)
+    assert result["gastric_systemic_return_l_min"] == 0
