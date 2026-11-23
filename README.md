@@ -9,7 +9,7 @@ GitHub Pages is enabled and the initial deployment completed successfully. Open 
 
 The latest commits may still be propagating while their Actions runs finish. [Deployment history](https://github.com/iamdatagabs/spleen/actions).
 
-## Current model — v0.5.0
+## Current model — v0.6.0
 - Four regional arterial flow compartments (stomach, intestine, spleen and pancreas).
 - Coupled portal pressure compartment with compliance and hepatic outflow resistance.
 - Simplified feedback from portal pressure to regional target flow.
@@ -61,3 +61,13 @@ This is a **research/educational prototype**, not a patient-specific simulator, 
 
 ## License
 MIT (prototype code).
+
+
+## Mathematical specification and methodological investigations (v0.6.0)
+
+- LaTeX formulation: [`docs/model.tex`](docs/model.tex), with a readable companion at [`docs/model.md`](docs/model.md).
+- Local identifiability screening: `POST /api/v1/identifiability`.
+- Prior-range robustness: `POST /api/v1/prior-sensitivity`.
+- Synthetic parameter recovery / preliminary importance-sampling rank check: `POST /api/v1/synthetic-recovery`.
+
+These analyses are computational diagnostics using the current simplified model. They do not establish physiological validity, clinical calibration, structural identifiability or formal SBC validity.
