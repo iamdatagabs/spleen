@@ -1,9 +1,9 @@
-"""SPLEEN reference API v0.3.0. Experimental coupled ODE model; not clinically validated."""
+"""SPLEEN reference API v0.4.0. Experimental coupled ODE model; not clinically validated."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="SPLEEN API", version="0.3.0")
+app = FastAPI(title="SPLEEN API", version="0.4.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 FRACTIONS = (.18, .62, .13, .07)
 TAU = (1.8, 2.8, 1.5, 2.2)
@@ -67,13 +67,13 @@ def simulate(request: Request):
         q = [max(0.0, v+p.dt_min*(goal[i]-v)/(TAU[i]*p.tau_scale)) for i, v in enumerate(q)]
         portal_pressure = max(HEPATIC_VENOUS_PRESSURE,
                               portal_pressure+p.dt_min*(portal_in-hepatic_out)/p.portal_compliance)
-    return {"model_version": "0.3.0", "method": "explicit_euler_coupled_ode",
+    return {"model_version": "0.4.0", "method": "explicit_euler_coupled_ode",
             "dt_min": p.dt_min, "warnings": ["research/education only; not clinically validated"],
             "timeline": timeline}
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model_version": "0.3.0"}
+    return {"status": "ok", "model_version": "0.4.0"}
 
 @app.post("/api/v1/simulations")
 def run_simulation(request: Request):
@@ -113,7 +113,7 @@ def sensitivity(request: Request):
                 "normalized_elasticity": elasticity
             }
         results.append(row)
-    return {"model_version": "0.3.0", "method": "one_at_a_time_local_sensitivity",
+    return {"model_version": "0.4.0", "method": "one_at_a_time_local_sensitivity",
             "perturbation": "±10% (bounded by parameter constraints)", "baseline": baseline,
             "results": results,
             "warnings": ["Local sensitivity only; not a global uncertainty analysis.",
@@ -190,7 +190,7 @@ def global_uncertainty(request: GlobalAnalysisRequest):
     for draw in draws:
         outputs.append(_sample_outputs(draw, base))
         parameter_draws.append(draw)
-    return {"model_version": "0.3.0", "method": request.method,
+    return {"model_version": "0.4.0", "method": request.method,
             "sampling": "independent uniform parameter priors; prior-predictive",
             "samples": request.samples, "seed": request.seed,
             "parameter_bounds": PARAMETER_BOUNDS,
@@ -235,7 +235,7 @@ def posterior_mcmc(request: GlobalAnalysisRequest):
         if iteration >= request.burn_in and (iteration-request.burn_in) % request.thin == 0:
             chain.append(dict(current))
             output_chain.append({k: current_out[k] for k in OUTPUT_METRICS})
-    return {"model_version": "0.3.0", "method": "random_walk_metropolis",
+    return {"model_version": "0.4.0", "method": "random_walk_metropolis",
             "sampling": "posterior conditional on supplied Gaussian observation errors and uniform bounded priors",
             "samples": len(chain), "burn_in": request.burn_in, "thin": request.thin,
             "acceptance_rate": accepted/total, "parameter_bounds": PARAMETER_BOUNDS,
