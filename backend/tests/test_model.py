@@ -160,7 +160,7 @@ def test_synthetic_recovery_returns_rank_and_importance_diagnostics():
     assert result["replications"] == 3
     assert result["prior_candidates_per_replication"] == 100
     assert set(result["rank_fraction_summary"]) == {
-        "portal_compliance", "hepatic_resistance", "portal_feedback_gain", "tau_scale"
+        "portal_compliance", "hepatic_resistance", "portal_feedback_gain", "tau_scale", "gastric_portal_fraction"
     }
     assert result["importance_sampling_ess"]["mean"] > 0
 
