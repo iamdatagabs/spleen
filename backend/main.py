@@ -28,7 +28,7 @@ def regional_targets(p, portal_pressure):
     venous_pressure = max(3, 5 + .20*p.pneumoperitoneum_mmhg)
     perfusion_gradient = max(8, map_eff - venous_pressure - .45*p.pneumoperitoneum_mmhg)
     portal_feedback = max(.65, 1 - .018*(portal_pressure - 10))
-    total = max(.12, 1.2*(perfusion_gradient/69)*(1-.010*p.blood_loss_pct)*portal_feedback)
+    total = max(.12, 1.2*(perfusion_gradient/64.2)*(1-.010*p.blood_loss_pct)*portal_feedback)
     pneu_factor = max(.35, 1-.025*p.pneumoperitoneum_mmhg)
     weights = [FRACTIONS[0]*(1+.0015*p.vasopressor_index),
                FRACTIONS[1]*pneu_factor,
