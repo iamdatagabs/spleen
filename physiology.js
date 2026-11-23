@@ -13,12 +13,14 @@
     const spleen=Number(state.regionalFlows.spleen);
     const spleenIndex=100*spleen/.156,totalIndex=100*total/1.2;
     const portalGradient=portal-5;
-    const gastricPortal=Number(state.portalInflowComponents?.stomach ?? 0);\n    const gastricSystemic=Number(state.gastricSystemicReturn ?? 0);
+    const gastricPortal=Number(state.portalInflowComponents?.stomach ?? 0);
+    const gastricSystemic=Number(state.gastricSystemicReturn ?? 0);
     $("appValue").textContent=fmt(app,0)+" mmHg";
     $("spleenFlow").textContent=fmt(spleen,3)+" L/min";
     $("spleenIndex").textContent=fmt(spleenIndex,0)+"%";
     $("portalGradient").textContent=fmt(portalGradient,1)+" mmHg";
-    $("gastricPortalFlow").textContent=fmt(gastricPortal,3)+" L/min";\n    $("gastricSystemicFlow").textContent=fmt(gastricSystemic,3)+" L/min";
+    $("gastricPortalFlow").textContent=fmt(gastricPortal,3)+" L/min";
+    $("gastricSystemicFlow").textContent=fmt(gastricSystemic,3)+" L/min";
     const appLevel=app<50?"critical":app<60?"watch":"normal";
     const spleenLevel=spleenIndex<70?"critical":spleenIndex<85?"watch":"normal";
     const portalLevel=portal>20?"critical":portal>15?"watch":"normal";
