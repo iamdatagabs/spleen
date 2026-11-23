@@ -298,3 +298,19 @@ A função `territoryVisualMetrics` em `spatial-model.mjs` é exclusivamente vis
 ### Verificações automatizadas
 
 A suíte Node verifica conservação da distribuição de fluxo, ordenação por resistência, resposta monotônica da espessura visual ao fluxo, limites da velocidade gráfica e rejeição de estados inválidos. A suíte Python permanece responsável pelos invariantes hemodinâmicos do modelo de referência.
+
+
+## 23. Entrega regional de oxigênio — v1.2.0
+
+A camada de oxigênio calcula a entrega convectiva regional a partir do fluxo arterial territorial e do conteúdo arterial de oxigênio:
+\[
+DO_{2,i}=10\,Q_{a,i}\,C_{aO_2},
+\]
+em que $Q_{a,i}$ está em L/min, $C_{aO_2}$ em mL O$_2$/dL e o fator 10 converte L para dL. O padrão demonstrativo $C_{aO_2}=18{,}5$ mL/dL é uma hipótese computacional, não um exame ou valor individual. O índice relativo é $DO_{2,i}/DO_{2,ref}$, com fluxo de referência 0,052 L/min por território.
+
+A cena colore os vértices da superfície paramétrica por interpolação gaussiana dos índices de entrega regional. A cor territorial combina a classe de pressão local com a entrega relativa de oxigênio. Essa interpolação é uma representação espacial de ordem reduzida, sem resolução de difusão, consumo metabólico, extração capilar, saturação venosa, transporte convectivo em vasos ou reação tecido-sangue.
+
+Portanto, DO$_2$ não equivale a oxigenação tecidual, disponibilidade intracelular, saturação, extração ou consumo de oxigênio. Não se calcula VO$_2$ nem hipóxia. As cores e classes são recursos de exploração visual, não limiares fisiológicos ou clínicos.
+
+### Testes v1.2
+A suíte verifica unidades e referência basal, proporcionalidade linear de DO$_2$ com fluxo e conteúdo arterial, ordenação das classes relativas, interpolação limitada aos valores territoriais e rejeição de entradas inválidas.
