@@ -11,7 +11,7 @@ The desktop edition packages the existing browser interface and the FastAPI refe
 - Local transport: loopback only (127.0.0.1:8765); no public server is required.
 - Installer: NSIS (.exe) and MSI.
 
-The browser simulation remains a local frontend capability. The Python API is packaged alongside the desktop application for reference-model endpoints and future API-backed workflows.
+The desktop shell starts the FastAPI process automatically in both development and release builds. The frontend checks API readiness and uses the local API to save, list, inspect, and delete experiments in a SQLite database under the operating system application-data directory.
 
 ## Development prerequisites
 
@@ -48,6 +48,6 @@ The packaged process binds to 127.0.0.1:8765. It is owned by the desktop shell a
 
 ## Current implementation boundary
 
-This is the desktop foundation, not yet a fully integrated desktop release. The frontend currently runs the existing browser simulation; the API is bundled and started for subsequent API-backed workflows. Startup readiness/health monitoring, user-selectable data directories, persistent experiment storage, code signing, installer upgrade testing, and end-to-end Windows validation remain follow-up work.
+This is an integrated desktop foundation, but not yet a signed production release. The current numerical simulation remains in the browser frontend; the local API provides health monitoring and SQLite experiment persistence, while the existing reference-model endpoints remain available for progressive integration. User-selectable data directories, code signing, installer upgrade testing, and end-to-end Windows validation remain follow-up work. Experiment records are local and must not contain patient identifiers or protected health information.
 
 SPLEEN is an experimental research/education prototype, not clinically validated software or a clinical decision-support system.
