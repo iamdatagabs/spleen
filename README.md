@@ -18,7 +18,7 @@ The included workflow deploys the repository root.
 - Python/FastAPI reference backend.
 - Mathematical model, requirements and limitations documentation.
 
-## Quick start
+## Publicação\nSiga [o guia de GitHub Pages](docs/deployment.md) para ativar a publicação inicial.\n\n## Quick start
 Open `index.html` in a modern browser, or serve the repository locally:
 
 ```bash
