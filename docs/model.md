@@ -257,3 +257,6 @@ Assim, $\sum_i Q_i=Q_{spl}$ por construção. Os valores iniciais $R_i^*=1$ prod
 As resistências são adimensionais e atuam somente na camada espacial. Elas não modificam a EDO compartimental global, a pressão portal nem o fluxo esplênico total. O modelo assume gradiente comum entre os leitos e não resolve pressão local, complacência, armazenamento vascular, autorregulação, fluxo pulsátil, microcirculação ou transporte de oxigênio. O campo de fluxo regional é uma partição matemática conservativa do fluxo agregado, não uma previsão clínica.
 
 A malha de superfície é procedural e paramétrica, não derivada de TC/RM, atlas segmentado ou anatomia individual. A árvore vascular é esquemática; calibres, comprimentos e ramificações não são anatômicos. A visualização não constitui CFD, elementos finitos ou modelo anatômico validado.
+
+
+A cena tridimensional requer WebGL e carrega Three.js 0.180.0 por CDN (jsDelivr). Se WebGL estiver indisponível, os controles e resultados do simulador compartimental permanecem independentes da visualização 3D. A implementação depende de conexão externa para carregar a biblioteca visual.
