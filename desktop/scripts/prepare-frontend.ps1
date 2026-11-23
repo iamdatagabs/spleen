@@ -8,7 +8,7 @@ if (Test-Path $frontend) { Remove-Item $frontend -Recurse -Force }
 New-Item -ItemType Directory -Path $frontend -Force | Out-Null
 New-Item -ItemType Directory -Path $vendor -Force | Out-Null
 
-$assets = @("index.html", "styles.css", "app.js", "analysis.js", "physiology.js", "spleen3d.mjs", "spatial-model.mjs")
+$assets = @("index.html", "styles.css", "app.js", "analysis.js", "physiology.js", "desktop-bridge.js", "spleen3d.mjs", "spatial-model.mjs")
 foreach ($asset in $assets) {
     Copy-Item (Join-Path $repoRoot $asset) (Join-Path $frontend $asset)
 }
