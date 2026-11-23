@@ -39,3 +39,11 @@ POST /api/v1/simulations. Entrada: model_version, parameters, duration_min, dt_m
 - RF-10: exibir marcadores e legenda de pressão territorial relativa à referência computacional.
 - RF-11: manter leituras numéricas de fluxo arterial, fluxo venoso e pressão local sincronizadas ao último estado simulado.
 - RNF-08: manter a transformação visual desacoplada das equações e impedir que escalas gráficas sejam interpretadas como medidas anatômicas ou clínicas.
+
+
+## Requisitos espaciais e de oxigênio — v1.2
+- RF-12: calcular entrega convectiva regional de O₂ por território a partir de fluxo arterial e conteúdo arterial de oxigênio declarado.
+- RF-13: exibir entrega regional em mL O₂/min e índice relativo à referência computacional.
+- RF-14: atualizar a coloração dos territórios 3D e da superfície paramétrica com base na entrega relativa de O₂, combinada à camada de pressão.
+- RNF-09: declarar unidades, valores de referência e limites da inferência; não representar entrega de O₂ como oxigenação tecidual ou consumo metabólico.
+- RNF-10: testar proporcionalidade, ordenação, interpolação espacial e rejeição de entradas inválidas.
