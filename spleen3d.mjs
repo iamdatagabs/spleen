@@ -83,7 +83,8 @@ if(host&&canvas){
     const fmt=n=>Number(n).toLocaleString("pt-BR",{minimumFractionDigits:3,maximumFractionDigits:3});
     const updateCompartments=()=>{
       const total=Number(state?.regionalFlows?.spleen??.156);
-      flows=distributeTerritoryFlow(total,resistances);
+      const dynamic=state?.splenicTerritories;
+      flows=dynamic?.length===3?dynamic.map(x=>Number(x.arterialInflow)):distributeTerritoryFlow(total,resistances);
       territories.forEach((t,i)=>{
         const frac=total>0?flows[i]/total:1/3;
         zoneMeshes[i].material.opacity=.13+.46*frac;
@@ -96,14 +97,14 @@ if(host&&canvas){
         const label=t.key[0].toUpperCase()+t.key.slice(1);
         const rEl=document.getElementById("r"+label+"Value"),qEl=document.getElementById("q"+label);
         if(rEl)rEl.textContent=resistances[i].toFixed(1).replace(".",",")+"×";
-        if(qEl)qEl.textContent=fmt(flows[i])+" L/min";
+        if(qEl)qEl.textContent=fmt(dynamic?.[i]?.venousOutflow??flows[i])+" L/min · P "+fmt(dynamic?.[i]?.pressure??10)+" mmHg";
       });
     };
     ["Superior","Middle","Inferior"].forEach((name,i)=>{
       const input=document.getElementById("r"+name);
-      input?.addEventListener("input",()=>{resistances[i]=Number(input.value);updateCompartments();});
+      input?.addEventListener("input",()=>{resistances[i]=Number(input.value);window.dispatchEvent(new CustomEvent("spleen-territory-resistance-change"));updateCompartments();});
     });
-    document.getElementById("resetTerritories")?.addEventListener("click",()=>{resistances=[1,1,1];["Superior","Middle","Inferior"].forEach(name=>{const input=document.getElementById("r"+name);if(input)input.value="1";});updateCompartments();});
+    document.getElementById("resetTerritories")?.addEventListener("click",()=>{resistances=[1,1,1];["Superior","Middle","Inferior"].forEach(name=>{const input=document.getElementById("r"+name);if(input)input.value="1";});window.dispatchEvent(new CustomEvent("spleen-territory-resistance-change"));updateCompartments();});
     window.updateSpleenSpatialState=next=>{state=next;updateCompartments();};
     if(state)updateCompartments();
     const clock=new THREE.Clock();
