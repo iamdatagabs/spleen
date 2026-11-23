@@ -218,7 +218,7 @@ def _split_rhat(chains):
     between = n*sum((v-grand)**2 for v in means)/(m-1)
     within = sum(variances)/m
     if within <= 0:
-        return 1.0 if between <= 0 else float("inf")
+        return 1.0 if between <= 0 else None
     var_hat = ((n-1)/n)*within + between/n
     return math.sqrt(max(0.0, var_hat/within))
 
@@ -298,9 +298,10 @@ def posterior_mcmc(request: GlobalAnalysisRequest):
         parameter_diagnostics[name] = {"r_hat": rhat, "ess": ess, "autocorrelation_lag1": acf1}
     pooled_outputs = [row for item in results for row in item[1]]
     pooled_params = [row for item in results for row in item[0]]
-    max_rhat = max((d["r_hat"] for d in parameter_diagnostics.values() if d["r_hat"] is not None), default=float("inf"))
+    valid_rhats = [d["r_hat"] for d in parameter_diagnostics.values() if d["r_hat"] is not None]
+    max_rhat = max(valid_rhats) if valid_rhats else None
     min_ess = min(d["ess"] for d in parameter_diagnostics.values())
-    converged = max_rhat < 1.05 and min_ess >= 100
+    converged = max_rhat is not None and max_rhat < 1.05 and min_ess >= 100
     return {"model_version": "0.5.0", "method": "multi_chain_random_walk_metropolis",
             "sampling": "posterior conditional on supplied Gaussian observation errors and uniform bounded priors",
             "chains": request.chains, "samples_per_chain": request.samples,
