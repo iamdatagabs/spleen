@@ -43,6 +43,23 @@ def regional_targets(p, portal_pressure):
                FRACTIONS[3]*(1+.0015*p.vasopressor_index)]
     return [total*w/sum(weights) for w in weights]
 
+def vascular_pressure_profile(arterial_pressure, capillary_pressure, venous_pressure, arterial_flow, venous_flow):
+    """Interpolated serial pressure nodes; fractions are illustrative, not anatomical."""
+    fractions = (0.25, 0.50, 0.25)
+    arterial_drop = max(0.0, arterial_pressure - capillary_pressure)
+    venous_drop = max(0.0, capillary_pressure - venous_pressure)
+    arterial_nodes = [arterial_pressure]
+    venous_nodes = [capillary_pressure]
+    for fraction in fractions:
+        arterial_nodes.append(arterial_nodes[-1] - arterial_drop * fraction)
+        venous_nodes.append(venous_nodes[-1] - venous_drop * fraction)
+    return {
+        "arterial_path": [{"segment": name, "pressure_mmhg": pressure, "flow_l_min": arterial_flow}
+                          for name, pressure in zip(("splenic_artery", "hilar_branch", "trabecular_branch", "terminal_arteriole"), arterial_nodes)],
+        "venous_path": [{"segment": name, "pressure_mmhg": pressure, "flow_l_min": venous_flow}
+                        for name, pressure in zip(("microvenous_outlet", "venule", "trabecular_vein", "splenic_vein"), venous_nodes)],
+    }
+
 def simulate(request: Request):
     p = request.parameters
     steps = round(p.duration_min/p.dt_min)
@@ -54,6 +71,7 @@ def simulate(request: Request):
     splenic_resistances = [p.splenic_resistance_superior, p.splenic_resistance_middle, p.splenic_resistance_inferior]
     splenic_resistance_base = 5.0 / .052
     splenic_compliance = .02  # L/mmHg per territory; illustrative
+    effective_arterial_pressure = max(20.0, p.map_mmhg + .12*p.vasopressor_index - .45*p.blood_loss_pct)
     timeline = []
     stride = max(1, round(.25/p.dt_min))
     for n in range(steps+1):
@@ -82,10 +100,11 @@ def simulate(request: Request):
                     {"name": name, "arterial_inflow_l_min": round(splenic_territory_in[i], 6),
                      "venous_outflow_l_min": round(splenic_territory_out[i], 6),
                      "pressure_mmhg": round(splenic_pressures[i], 6),
-                     "relative_resistance": splenic_resistances[i]}
+                     "relative_resistance": splenic_resistances[i], **vascular_pressure_profile(max(effective_arterial_pressure, splenic_pressures[i]), splenic_pressures[i], HEPATIC_VENOUS_PRESSURE, splenic_territory_in[i], splenic_territory_out[i])}
                     for i, name in enumerate(("superior", "middle", "inferior"))
                 ],
                 "splenic_venous_outflow_l_min": round(splenic_venous_out, 6),
+                "splenic_arterial_source_pressure_mmhg": round(effective_arterial_pressure, 6),
                 "hepatic_portal_outflow_l_min": round(hepatic_out, 6),
                 "hepatic_arterial_flow_l_min": round(hepatic_arterial, 6),
                 "hepatic_oxygen_delivery_ml_min": round((hepatic_out+hepatic_arterial)*185, 6)
@@ -99,13 +118,13 @@ def simulate(request: Request):
         ]
         portal_pressure = max(HEPATIC_VENOUS_PRESSURE,
                               portal_pressure+p.dt_min*(portal_in-hepatic_out)/p.portal_compliance)
-    return {"model_version": "0.8.0", "method": "explicit_euler_coupled_ode_with_splenic_windkessel_territories",
+    return {"model_version": "0.9.0", "method": "explicit_euler_coupled_ode_with_distributed_splenic_pressure_profiles",
             "dt_min": p.dt_min, "warnings": ["research/education only; not clinically validated"],
             "timeline": timeline}
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model_version": "0.8.0"}
+    return {"status": "ok", "model_version": "0.9.0"}
 
 @app.post("/api/v1/simulations")
 def run_simulation(request: Request):
