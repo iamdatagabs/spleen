@@ -314,3 +314,25 @@ Portanto, DO$_2$ não equivale a oxigenação tecidual, disponibilidade intracel
 
 ### Testes v1.2
 A suíte verifica unidades e referência basal, proporcionalidade linear de DO$_2$ com fluxo e conteúdo arterial, ordenação das classes relativas, interpolação limitada aos valores territoriais e rejeição de entradas inválidas.
+
+
+## 24. Campo tridimensional de pO₂ tecidual — v1.3.0
+
+A camada espacial resolve uma equação de reação-difusão para pressão parcial tecidual de oxigênio $P_t$ em um domínio 3D elipsoidal simplificado:
+
+\[
+\frac{\partial P_t}{\partial t}
+= D\nabla^2 P_t
++ k_{perf}(\mathbf{x})(P_{aO_2}-P_t)
+- V_{max}\frac{P_t}{K_m+P_t}.
+\]
+
+O primeiro termo representa difusão efetiva no tecido; o segundo é uma fonte distribuída dependente da perfusão regional e da diferença entre pressão arterial de oxigênio imposta e pO₂ local; o terceiro representa consumo saturável de ordem reduzida. O domínio usa coordenadas em mm, tempo em segundos, pO₂ em mmHg, $D$ em mm²/s, $k_{perf}$ em s⁻¹, $V_{max}$ em mmHg/s e $K_m$ em mmHg. As faces externas e as fronteiras internas do domínio usam fluxo difusivo normal nulo (Neumann).
+
+O campo de perfusão é interpolado por kernels gaussianos centrados nos três territórios, ponderados pelo fluxo arterial regional calculado no modelo hemodinâmico. A equação é discretizada em diferenças finitas 3D com Euler explícito. O passo é verificado contra limites de estabilidade para difusão e reação. A superfície paramétrica 3D amostra o campo numérico por interpolação trilinear.
+
+### Hipóteses e limites
+Este é um modelo fenomenológico reduzido: não resolve árvore vascular, hematócrito, curva de dissociação da hemoglobina, conteúdo arterial convertido em pO₂, extração capilar explícita, consumo celular medido, heterogeneidade histológica, fluxo microvascular real ou acoplamento advecção-difusão em vasos. $P_{aO_2}$, difusividade, coeficiente de perfusão, $V_{max}$ e $K_m$ são parâmetros demonstrativos. O campo não equivale a diagnóstico de hipóxia/isquemia nem pode orientar conduta clínica.
+
+### Verificações v1.3
+Testes cobrem resposta à oferta perfusional, gradiente espacial, amostragem trilinear, rejeição de passos instáveis/entradas inválidas e sensibilidade à redução do passo temporal.
