@@ -13,10 +13,12 @@
     const spleen=Number(state.regionalFlows.spleen);
     const spleenIndex=100*spleen/.156,totalIndex=100*total/1.2;
     const portalGradient=portal-5;
+    const gastricPortal=Number(state.portalInflowComponents?.stomach ?? 0);
     $("appValue").textContent=fmt(app,0)+" mmHg";
     $("spleenFlow").textContent=fmt(spleen,3)+" L/min";
     $("spleenIndex").textContent=fmt(spleenIndex,0)+"%";
     $("portalGradient").textContent=fmt(portalGradient,1)+" mmHg";
+    $("gastricPortalFlow").textContent=fmt(gastricPortal,3)+" L/min";
     const appLevel=app<50?"critical":app<60?"watch":"normal";
     const spleenLevel=spleenIndex<70?"critical":spleenIndex<85?"watch":"normal";
     const portalLevel=portal>20?"critical":portal>15?"watch":"normal";
@@ -36,7 +38,7 @@
     $("criticalityExplanation").textContent="Indicador mais alterado: "+worst.name+". Resultados vinculados ao último estado calculado pelo simulador; APP usa os controles atuais.";
   }
   ["run","reset"].forEach(id=>$(id)?.addEventListener("click",()=>requestAnimationFrame(update)));
-  ["map","pneu","vaso","blood","duration"].forEach(id=>$(id)?.addEventListener("input",()=>requestAnimationFrame(update)));
+  ["map","pneu","vaso","blood","gastricPortalPct","duration"].forEach(id=>$(id)?.addEventListener("input",()=>requestAnimationFrame(update)));
   const model=$("spleen3d");
   if(model){
     let dragging=false,lastX=0,lastY=0,rx=12,ry=-18;
