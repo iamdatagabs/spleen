@@ -9,6 +9,7 @@ import json
 import os
 import sqlite3
 import uuid
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -37,6 +38,7 @@ def connect() -> sqlite3.Connection:
         )
     """)
     connection.execute("CREATE INDEX IF NOT EXISTS idx_experiments_created ON experiments(created_at DESC)")
+    connection.commit()
     return connection
 
 def _decode(row: sqlite3.Row) -> dict[str, Any]:
@@ -70,17 +72,18 @@ def create_experiment(payload: ExperimentCreate) -> dict[str, Any]:
         "inputs": payload.inputs,
         "results": payload.results,
     }
-    with connect() as db:
+    with closing(connect()) as db:
         db.execute(
             "INSERT INTO experiments (id,title,created_at,model_version,inputs_json,results_json) VALUES (?,?,?,?,?,?)",
             (record["id"], record["title"], record["created_at"], record["model_version"],
              json.dumps(record["inputs"], separators=(",", ":")),
              json.dumps(record["results"], separators=(",", ":"))),
         )
+        db.commit()
     return record
 
 def list_experiments(limit: int = 50) -> list[dict[str, Any]]:
-    with connect() as db:
+    with closing(connect()) as db:
         rows = db.execute(
             "SELECT * FROM experiments ORDER BY created_at DESC LIMIT ?", (limit,)
         ).fetchall()
