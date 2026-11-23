@@ -5,10 +5,12 @@
   "description": "SPLEEN Windows desktop application",
   "scripts": {
     "tauri": "tauri",
+    "prepare:frontend": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-frontend.ps1",
+    "predev": "npm run prepare:frontend",
     "dev": "tauri dev",
+    "prebuild": "npm run prepare:frontend",
     "build": "tauri build"
   },
-  "devDependencies": {
-    "@tauri-apps/cli": "^2.0.0"
-  }
+  "dependencies": { "three": "0.180.0" },
+  "devDependencies": { "@tauri-apps/cli": "^2.0.0" }
 }
