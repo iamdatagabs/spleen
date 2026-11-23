@@ -9,18 +9,28 @@ struct ApiProcess(Mutex<Option<Child>>);
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
-            if !cfg!(debug_assertions) {
-                let api_path = app
-                    .path()
-                    .resolve("spleen-api.exe", BaseDirectory::Resource)?;
-                let child = Command::new(api_path)
-                    .args(["--host", "127.0.0.1", "--port", "8765"])
-                    .stdin(Stdio::null())
-                    .stdout(Stdio::null())
-                    .stderr(Stdio::null())
-                    .spawn()?;
-                app.manage(ApiProcess(Mutex::new(Some(child))));
+            let data_dir = app.path().app_data_dir()?;
+            std::fs::create_dir_all(&data_dir)?;
+            let child = if cfg!(debug_assertions) {
+                let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("../..")
+                    .canonicalize()?;
+                let mut command = Command::new("python");
+                command
+                    .args(["-m", "backend.desktop_entry"])
+                    .current_dir(repo_root);
+                command
+            } else {
+                let api_path = app.path().resolve("spleen-api.exe", BaseDirectory::Resource)?;
+                let mut command = Command::new(api_path);
+                command
             }
+            .env("SPLEEN_DATA_DIR", data_dir)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()?;
+            app.manage(ApiProcess(Mutex::new(Some(child))));
             Ok(())
         })
         .on_window_event(|window, event| {
