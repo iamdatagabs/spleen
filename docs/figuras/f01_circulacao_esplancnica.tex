@@ -1,0 +1,44 @@
+% F01 — Arquitetura anatômico-funcional simplificada da circulação esplâncnica.
+% Inclua no documento principal após carregar TikZ e as bibliotecas necessárias.
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  >=Latex,
+  art/.style={draw=red!65!black,fill=red!5,rounded corners=3pt,minimum width=2.65cm,minimum height=0.82cm,align=center,thick},
+  org/.style={draw=blue!55!black,fill=blue!4,rounded corners=3pt,minimum width=2.55cm,minimum height=0.82cm,align=center,thick},
+  ven/.style={draw=teal!65!black,fill=teal!5,rounded corners=3pt,minimum width=3.0cm,minimum height=0.85cm,align=center,thick},
+  liver/.style={draw=orange!75!black,fill=orange!8,rounded corners=3pt,minimum width=3.1cm,minimum height=1.0cm,align=center,thick},
+  flow/.style={->,draw=red!70!black,line width=1.1pt},
+  portal/.style={->,draw=teal!75!black,line width=1.2pt},
+  excluded/.style={->,draw=gray!75,dashed,line width=1pt},
+  note/.style={font=\scriptsize,align=left,text width=4.4cm}
+]
+\node[art] (arterial) at (0,0) {Sistema arterial\\(pressão de entrada)};
+\node[org] (stomach) at (4.2,2.3) {Estômago\\leito gástrico};
+\node[org] (intestine) at (4.2,0.75) {Intestino\\leito intestinal};
+\node[org] (spleen) at (4.2,-0.8) {Baço\\leito esplênico};
+\node[org] (pancreas) at (4.2,-2.35) {Pâncreas\\leito pancreático};
+\node[ven] (portal) at (8.7,-0.15) {Confluência venosa\\e veia porta};
+\node[liver] (hepatic) at (12.6,-0.15) {Fígado\\resistência/saída hepática};
+\node[ven] (systemic) at (12.6,-2.25) {Retorno venoso\\sistêmico};
+\draw[flow] (arterial.east) -- ++(0.7,0) |- (stomach.west);
+\draw[flow] (arterial.east) -- ++(0.7,0) |- (intestine.west);
+\draw[flow] (arterial.east) -- ++(0.7,0) |- (spleen.west);
+\draw[flow] (arterial.east) -- ++(0.7,0) |- (pancreas.west);
+\draw[portal] (intestine.east) -- (portal.west);
+\draw[portal] (spleen.east) -- (portal.west);
+\draw[portal] (pancreas.east) -- (portal.west);
+\draw[portal] (portal.east) -- node[above,font=\scriptsize]{fluxo portal} (hepatic.west);
+\draw[flow] (hepatic.south) -- (systemic.north);
+\draw[excluded] (stomach.east) -- ++(0.55,0) |- node[pos=0.25,right,font=\scriptsize,text=gray!80!black]{drenagem gástrica\\portal real} (portal.north);
+\node[note,anchor=north west] at (0,-3.15) {\textbf{Leitura do esquema}\\
+Setas vermelhas: suprimento arterial sistêmico.\\
+Setas verdes: drenagem venosa portal e saída hepática.\\
+Linha tracejada: drenagem gástrica portal anatômica, não incluída na soma simplificada de entrada portal usada na versão atual do SPLEEN.};
+\node[note,anchor=north east] at (14.6,-3.15) {\textbf{Atenção à abstração}\\
+A anatomia venosa é mais complexa do que quatro leitos independentes. O desenho é funcional e esquemático; não representa calibres, distâncias, proporções de fluxo nem variações anatômicas.};
+\end{tikzpicture}
+\caption{Arquitetura anatômico-funcional simplificada da circulação esplâncnica e portal. O modelo atual agrega quatro leitos arteriais; a drenagem gástrica é indicada para preservar a referência anatômica, embora não componha a expressão simplificada de entrada portal implementada no protótipo.}
+\label{fig:f01-circulacao-esplancnica}
+\end{figure}
