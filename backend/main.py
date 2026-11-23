@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="SPLEEN API", version="0.6.0")
+app = FastAPI(title="SPLEEN API", version="0.7.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 FRACTIONS = (.18, .62, .13, .07)
 TAU = (1.8, 2.8, 1.5, 2.2)
@@ -19,7 +19,8 @@ class Parameters(BaseModel):
     duration_min: float = Field(20, ge=1, le=60)
     dt_min: float = Field(.025, ge=.005, le=.1)
     portal_compliance: float = Field(.08, gt=.005, le=.5, description="L/mmHg; illustrative model parameter")
-    hepatic_resistance: float = Field(5.0/.984, gt=.1, le=30, description="mmHg/(L/min); illustrative model parameter")
+    gastric_portal_fraction: float = Field(.90, ge=0, le=1, description="Exploratory fraction of gastric arterial flow returning to portal compartment")
+    hepatic_resistance: float = Field(5.0/(.984+.90*.216), gt=.1, le=30, description="mmHg/(L/min); illustrative model parameter")
     portal_feedback_gain: float = Field(.018, ge=0, le=.08, description="dimensionless gain; illustrative")
     tau_scale: float = Field(1.0, ge=.25, le=4, description="multiplier for regional time constants")
 
@@ -49,7 +50,9 @@ def simulate(request: Request):
     timeline = []
     stride = max(1, round(.25/p.dt_min))
     for n in range(steps+1):
-        portal_in = q[1] + q[2] + q[3]
+        gastric_portal_in = p.gastric_portal_fraction*q[0]
+        gastric_systemic_return = (1-p.gastric_portal_fraction)*q[0]
+        portal_in = gastric_portal_in + q[1] + q[2] + q[3]
         hepatic_out = max(0.0, (portal_pressure-HEPATIC_VENOUS_PRESSURE)/p.hepatic_resistance)
         total = sum(q)
         hepatic_arterial = .2*total*min(1.3, max(.7, 1+.03*(10-portal_pressure)))
@@ -59,6 +62,8 @@ def simulate(request: Request):
                 "regional_flow_l_min": dict(zip(NAMES, [round(v, 6) for v in q])),
                 "total_flow_l_min": round(total, 6),
                 "portal_inflow_l_min": round(portal_in, 6),
+                "gastric_portal_inflow_l_min": round(gastric_portal_in, 6),
+                "gastric_systemic_return_l_min": round(gastric_systemic_return, 6),
                 "portal_pressure_mmhg": round(portal_pressure, 6),
                 "hepatic_portal_outflow_l_min": round(hepatic_out, 6),
                 "hepatic_arterial_flow_l_min": round(hepatic_arterial, 6),
@@ -68,13 +73,13 @@ def simulate(request: Request):
         q = [max(0.0, v+p.dt_min*(goal[i]-v)/(TAU[i]*p.tau_scale)) for i, v in enumerate(q)]
         portal_pressure = max(HEPATIC_VENOUS_PRESSURE,
                               portal_pressure+p.dt_min*(portal_in-hepatic_out)/p.portal_compliance)
-    return {"model_version": "0.5.0", "method": "explicit_euler_coupled_ode",
+    return {"model_version": "0.7.0", "method": "explicit_euler_coupled_ode",
             "dt_min": p.dt_min, "warnings": ["research/education only; not clinically validated"],
             "timeline": timeline}
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model_version": "0.6.0"}
+    return {"status": "ok", "model_version": "0.7.0"}
 
 @app.post("/api/v1/simulations")
 def run_simulation(request: Request):
@@ -126,6 +131,7 @@ PARAMETER_BOUNDS = {
     "hepatic_resistance": (2.0, 12.0),
     "portal_feedback_gain": (.002, .05),
     "tau_scale": (.5, 2.0),
+    "gastric_portal_fraction": (.50, 1.0),
 }
 OUTPUT_METRICS = (
     "total_flow_l_min", "portal_pressure_mmhg",
