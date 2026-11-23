@@ -47,3 +47,12 @@ POST /api/v1/simulations. Entrada: model_version, parameters, duration_min, dt_m
 - RF-14: atualizar a coloração dos territórios 3D e da superfície paramétrica com base na entrega relativa de O₂, combinada à camada de pressão.
 - RNF-09: declarar unidades, valores de referência e limites da inferência; não representar entrega de O₂ como oxigenação tecidual ou consumo metabólico.
 - RNF-10: testar proporcionalidade, ordenação, interpolação espacial e rejeição de entradas inválidas.
+
+
+## Requisitos de transporte tecidual de oxigênio — v1.3
+- RF-15: resolver campo tridimensional de pO₂ tecidual em domínio paramétrico com difusão efetiva, oferta perfusional distribuída e consumo saturável.
+- RF-16: acoplar a intensidade da oferta regional ao fluxo arterial dos três territórios esplênicos.
+- RF-17: amostrar o campo numérico na superfície 3D e exibir média, mínimo, máximo e tempo simulado.
+- RNF-11: declarar unidades e condições de contorno de fluxo difusivo normal nulo.
+- RNF-12: verificar limite de estabilidade do integrador explícito e convergência temporal por redução do passo.
+- RNF-13: identificar parâmetros demonstrativos e impedir interpretação dos resultados como avaliação clínica de hipóxia ou isquemia.
