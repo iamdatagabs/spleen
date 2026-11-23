@@ -86,12 +86,18 @@ def sensitivity(request: Request):
     baseline = simulate(Request(parameters=base_p))["timeline"][-1]
     metrics = ("total_flow_l_min", "portal_pressure_mmhg",
                "hepatic_portal_outflow_l_min", "hepatic_oxygen_delivery_ml_min")
-    parameters = ("portal_compliance", "hepatic_resistance", "portal_feedback_gain", "tau_scale")
+    bounds = {"portal_compliance": (.005, .5), "hepatic_resistance": (.1, 30),
+              "portal_feedback_gain": (0, .08), "tau_scale": (.25, 4)}
+    parameters = tuple(bounds)
     results = []
     for name in parameters:
         value = getattr(base_p, name)
         delta = max(abs(value)*.10, 1e-6)
-        low_value, high_value = max(delta, value-delta), value+delta
+        lower_bound, upper_bound = bounds[name]
+        low_value = max(lower_bound, value-delta)
+        high_value = min(upper_bound, value+delta)
+        if high_value <= low_value:
+            high_value = min(upper_bound, low_value + max(delta, 1e-6))
         low_p = base_p.model_copy(update={name: low_value})
         high_p = base_p.model_copy(update={name: high_value})
         low = simulate(Request(parameters=low_p))["timeline"][-1]
