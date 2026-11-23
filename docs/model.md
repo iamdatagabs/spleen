@@ -1,60 +1,76 @@
-# Modelo matemático — SPLEEN v0.1
+# Modelo matemático — SPLEEN v0.2
 
 ## 1. Escopo
-Modelo compartimental de ordem reduzida para explorar respostas qualitativas da perfusão esplâncnica a perturbações hemodinâmicas. Não é um gêmeo digital individual, não foi calibrado nem validado clinicamente.
+Modelo compartimental de ordem reduzida para explorar respostas qualitativas da perfusão esplâncnica e da dinâmica portal-hepática. Não é um gêmeo digital individual, não foi calibrado nem validado clinicamente.
 
-São representados quatro leitos arteriais paralelos: estômago, intestino, baço e pâncreas. O retorno portal é aproximado pela soma dos fluxos dos compartimentos intestino, baço e pâncreas.
+São representados quatro leitos arteriais: estômago, intestino, baço e pâncreas. Os fluxos dos territórios intestino, baço e pâncreas alimentam o compartimento portal. A drenagem portal-hepática é representada por uma resistência e a pressão portal por um compartimento complacente.
 
 ## 2. Estados e parâmetros
-Q_i(t) representa o fluxo arterial regional em L/min. O vetor de estados é x(t) = [Q_estômago, Q_intestino, Q_baço, Q_pâncreas]^T. O fluxo basal total inicial é 1,20 L/min, com frações ilustrativas [0,18; 0,62; 0,13; 0,07]. Não são valores de referência clínica.
+Estados:
+- Q_i(t): fluxo arterial regional do órgão i, em L/min.
+- P_p(t): pressão portal, em mmHg.
 
-Constantes de tempo ilustrativas: tau = [1,8; 2,8; 1,5; 2,2] minutos. Entradas: PAM (mmHg), pressão de pneumoperitônio (mmHg), índice abstrato de suporte vasopressor (0–100) e perda volêmica estimada (0–40%).
+Vetor regional inicial: [0,216; 0,744; 0,156; 0,084] L/min. Frações basais ilustrativas: [0,18; 0,62; 0,13; 0,07]. Constantes de tempo regionais: tau = [1,8; 2,8; 1,5; 2,2] min.
 
-## 3. Sistema de EDOs
-Para cada compartimento i:
+Parâmetros adicionais ilustrativos:
+- Complacência portal C_p = 0,08 L/mmHg.
+- Pressão venosa hepática P_hv = 5 mmHg.
+- Resistência efetiva de drenagem R_h = 5/0,984 mmHg/(L/min), escolhida para equilíbrio basal aproximado.
+- Conteúdo arterial de oxigênio CaO2 = 18,5 mL/dL.
 
-dQ_i/dt = (Q_i,alvo(u) - Q_i) / tau_i
+Entradas: PAM (mmHg), pressão de pneumoperitônio (mmHg), índice abstrato de suporte vasopressor (0–100) e perda volêmica estimada (0–40%).
 
-A integração numérica utiliza Euler explícito com dt = 0,05 min:
+## 3. Sistema acoplado de EDOs
 
-Q_i[n+1] = Q_i[n] + dt * (Q_i,alvo[n] - Q_i[n]) / tau_i.
+Para cada leito arterial regional:
 
-## 4. Construção do fluxo-alvo
-PAM_ef = max(20, PAM + 0,12 V - 0,45 B)
+dQ_i/dt = (Q_i,alvo(PAM, P_pneu, V, B, P_p) - Q_i) / tau_i
 
-DeltaP = max(8, PAM_ef - 0,65 P_pneu - 8)
+Balanço portal:
 
-Q_global = max(0,12, 1,20 * (DeltaP/69) * (1 - 0,010 B))
+C_p dP_p/dt = Q_p,entrada - Q_p,saída
 
-Pesos relativos: w_i = f_i * g_i. Para o intestino, g = max(0,35, 1 - 0,025 P_pneu); para o baço, g = 1 + 0,0005 V; para estômago e pâncreas, g = 1 + 0,0015 V.
+Q_p,entrada = Q_intestino + Q_baço + Q_pâncreas
 
-Q_i,alvo = Q_global * w_i / soma(w_j).
+Q_p,saída = max(0, (P_p - P_hv) / R_h)
 
-Todos os coeficientes acima são ilustrativos e não representam relações dose-resposta clínicas validadas. A formulação não resolve explicitamente resistência vascular, pressão venosa, complacência, autorregulação ou circulação colateral.
+A pressão portal retroage sobre o fluxo-alvo regional por um fator simplificado:
+
+f_p = max(0,65, 1 - 0,018(P_p - 10))
+
+A perfusão regional efetiva também depende de um gradiente simplificado entre pressão arterial efetiva e pressão venosa/abdominal. Os pesos regionais preservam a distribuição basal modificada por fatores ilustrativos de pneumoperitônio e suporte vasopressor.
+
+## 4. Integração numérica
+O protótipo usa Euler explícito, com passo padrão dt = 0,025 min. A implementação Python e a implementação JavaScript seguem o mesmo sistema. Devem ser comparados passos dt, dt/2 e dt/4 para verificar convergência; a positividade dos fluxos e a estabilidade da pressão portal devem ser testadas em todo o domínio de entradas.
 
 ## 5. Indicadores derivados
-Fluxo portal aproximado: Q_portal = Q_intestino + Q_baço + Q_pâncreas.
+- Fluxo portal de entrada: soma dos fluxos intestino, baço e pâncreas.
+- Saída portal-hepática: gradiente portal-hepático dividido pela resistência efetiva.
+- Fluxo arterial hepático: componente de 20% do fluxo total, modulado por uma resposta tampão portal-hepática simplificada.
+- Entrega hepática de O2: (Q_p,saída + Q_HA) × 185, em mL O2/min.
 
-Componente arterial hepático simplificado: Q_HA = 0,20 * soma(Q_i). Considerando conteúdo arterial de oxigênio assumido CaO2 = 18,5 mL/dL, o indicador exibido é DO2_hepático = (Q_portal + Q_HA) * CaO2 / 10, em mL O2/min. Trata-se de indicador derivado experimental, não de medida fisiológica.
+A conversão 185 resulta de 18,5 mL/dL × 10 dL/L. O fluxo portal de entrada não deve ser confundido com a saída portal-hepática. Todos os indicadores são resultados do modelo, não medidas clínicas.
 
-Índice regional = 100 * Q_total / 1,20, relativo ao estado inicial. Não é escore clínico.
+## 6. Hipóteses e limitações
+Não há autorregulação regional baseada em mecanismos fisiológicos validados, resistência individual por órgão, curva pressão-fluxo empírica, controle neural/hormonal, débito cardíaco, retorno venoso, farmacocinética, temperatura, equilíbrio ácido-base, fluxo colateral ou heterogeneidade microvascular. A resposta tampão arterial hepática é uma hipótese algébrica simplificada, não uma representação validada do hepatic arterial buffer response.
 
-## 6. Evolução para EDP e CFD
+Os valores de complacência, resistência e coeficientes de retroalimentação são demonstrativos e escolhidos para estabilidade/ilustração. Não devem ser interpretados como valores fisiológicos de referência.
+
+## 7. Evolução para EDP e CFD
 Uma extensão espacial de transporte de oxigênio poderá utilizar:
 
 partial_t C + div(v C) = div(D grad C) - R(C,M)
 
 C é concentração de oxigênio, v velocidade local, D tensor de difusão efetiva e R consumo metabólico. Serão necessários geometria, condições de contorno, malha, estudo de convergência e dados para parametrização. CFD será um módulo distinto e de maior fidelidade; não está implementado no MVP.
 
-Aprendizado de máquina poderá estimar parâmetros ou padrões de resposta apenas após construção de base de dados curada, com incerteza e validação externa.
-
-## 7. Verificação e validação
+## 8. Verificação e validação
 1. Testes de positividade e limites dos estados.
-2. Teste de normalização: soma dos fluxos-alvo deve ser Q_global.
+2. Equilíbrio basal: Q_p,entrada aproximadamente igual a Q_p,saída.
 3. Convergência numérica comparando dt, dt/2 e dt/4.
-4. Análise de sensibilidade dos parâmetros e constantes de tempo.
-5. Registro de unidade, origem, população, incerteza e versão de cada parâmetro.
-6. Calibração e validação independente antes de qualquer tradução clínica.
+4. Testes de conservação do balanço portal.
+5. Análise de sensibilidade de C_p, R_h e coeficientes de feedback.
+6. Registro de unidade, origem, população, incerteza e versão de cada parâmetro.
+7. Calibração e validação independente antes de qualquer tradução clínica.
 
-## 8. Limitações
-Sem dados de pacientes, calibração, validação, quantificação de incerteza, feedback entre órgãos, débito cardíaco, retorno venoso, farmacocinética, fases cirúrgicas, temperatura ou equilíbrio ácido-base. Não há solução 3D de Navier–Stokes nem EDP espacial implementada. Nenhuma saída deve orientar conduta clínica.
+## 9. Segurança
+Nenhuma saída deve orientar conduta clínica, diagnóstico, prescrição ou decisão intraoperatória. O sistema é exclusivamente experimental e educacional.
