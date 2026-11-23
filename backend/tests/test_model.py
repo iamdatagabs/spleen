@@ -130,3 +130,36 @@ def test_synthetic_observations_favor_generating_parameter_vector():
     assert truth_loss == 0
     assert alt_loss > truth_loss
     assert all(PARAMETER_BOUNDS[k][0] <= truth[k] <= PARAMETER_BOUNDS[k][1] for k in truth)
+
+
+def test_local_identifiability_screen_returns_scaled_jacobian():
+    from main import GlobalAnalysisRequest, identifiability
+    result = identifiability(GlobalAnalysisRequest(
+        samples=20, parameters=Parameters(duration_min=1, dt_min=.05)
+    ))
+    assert result["method"] == "local_scaled_sensitivity_rank_screen"
+    assert len(result["scaled_sensitivity_matrix"]) == 4
+    assert 0 <= result["local_rank"] <= result["maximum_rank"]
+    assert "hepatic_resistance__portal_feedback_gain" in result["sensitivity_column_cosines"]
+
+
+def test_prior_sensitivity_compares_three_uniform_scenarios():
+    from main import GlobalAnalysisRequest, prior_sensitivity
+    result = prior_sensitivity(GlobalAnalysisRequest(
+        samples=20, seed=11, parameters=Parameters(duration_min=1, dt_min=.05)
+    ))
+    assert set(result["scenarios"]) == {"narrow", "reference", "wide"}
+    assert "portal_pressure_mmhg" in result["relative_quantile_shifts_vs_reference"]
+
+
+def test_synthetic_recovery_returns_rank_and_importance_diagnostics():
+    from main import GlobalAnalysisRequest, synthetic_recovery
+    result = synthetic_recovery(GlobalAnalysisRequest(
+        samples=20, seed=23, parameters=Parameters(duration_min=1, dt_min=.05)
+    ))
+    assert result["replications"] == 3
+    assert result["prior_candidates_per_replication"] == 100
+    assert set(result["rank_fraction_summary"]) == {
+        "portal_compliance", "hepatic_resistance", "portal_feedback_gain", "tau_scale"
+    }
+    assert result["importance_sampling_ess"]["mean"] > 0
