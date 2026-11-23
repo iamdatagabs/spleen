@@ -12,8 +12,10 @@ $assets = @("index.html", "styles.css", "app.js", "analysis.js", "physiology.js"
 foreach ($asset in $assets) {
     Copy-Item (Join-Path $repoRoot $asset) (Join-Path $frontend $asset)
 }
-Copy-Item (Join-Path $repoRoot "docs/model.md") (Join-Path $frontend "docs-model.md")
-Copy-Item (Join-Path $repoRoot "docs/model.tex") (Join-Path $frontend "docs-model.tex")
+$docs = Join-Path $frontend "docs"
+New-Item -ItemType Directory -Path $docs -Force | Out-Null
+Copy-Item (Join-Path $repoRoot "docs/model.md") (Join-Path $docs "model.md")
+Copy-Item (Join-Path $repoRoot "docs/model.tex") (Join-Path $docs "model.tex")
 $three = Join-Path $desktopRoot "node_modules/three/build/three.module.js"
 if (-not (Test-Path $three)) { throw "Three.js dependency not found. Run npm install first." }
 Copy-Item $three (Join-Path $vendor "three.module.js")
