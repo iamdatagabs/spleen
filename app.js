@@ -1,4 +1,4 @@
-/* SPLEEN v0.7.0 — coupled reduced-order educational model; coefficients are illustrative. */
+/* SPLEEN v0.8.0 — coupled reduced-order educational model; coefficients are illustrative. */
 (()=>{const $=id=>document.getElementById(id),colors=["#58d6c2","#69a9ff","#f4bd67","#d98bc1"],names=["Estômago","Intestino","Baço","Pâncreas"],base=[.18,.62,.13,.07],tau=[1.8,2.8,1.5,2.2],controls=["map","pneu","vaso","blood","gastricPortalPct","duration"];let history=[];
 const read=()=>Object.fromEntries(controls.map(k=>[k,Number($(k).value)]));
 function labels(){const p=read();$("mapValue").textContent=p.map+" mmHg";$("pneuValue").textContent=p.pneu+" mmHg";$("vasoValue").textContent=p.vaso+"%";$("bloodValue").textContent=p.blood+"%";$("durationValue").textContent=p.duration+" min";$("gastricPortalValue").textContent=p.gastricPortalPct+"%";}
