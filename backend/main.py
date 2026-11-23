@@ -118,3 +118,128 @@ def sensitivity(request: Request):
             "results": results,
             "warnings": ["Local sensitivity only; not a global uncertainty analysis.",
                          "Perturbation ranges and coefficients are illustrative, not empirical or clinically calibrated."]}
+
+
+PARAMETER_BOUNDS = {
+    "portal_compliance": (.01, .30),
+    "hepatic_resistance": (2.0, 12.0),
+    "portal_feedback_gain": (.002, .05),
+    "tau_scale": (.5, 2.0),
+}
+OUTPUT_METRICS = (
+    "total_flow_l_min", "portal_pressure_mmhg",
+    "hepatic_portal_outflow_l_min", "hepatic_oxygen_delivery_ml_min",
+)
+
+class GlobalAnalysisRequest(BaseModel):
+    parameters: Parameters = Parameters()
+    method: str = Field("lhs", pattern="^(lhs|monte_carlo|mcmc)$")
+    samples: int = Field(300, ge=20, le=3000)
+    seed: int = Field(2026, ge=0, le=2147483647)
+    burn_in: int = Field(500, ge=50, le=5000)
+    thin: int = Field(2, ge=1, le=50)
+    observations: list[dict] = Field(default_factory=list)
+
+def _uniform_parameters(rng, base, values):
+    return base.model_copy(update=values)
+
+def _latin_hypercube(rng, n, bounds):
+    cols = {}
+    for name, (lo, hi) in bounds.items():
+        strata = [(i + rng.random()) / n for i in range(n)]
+        rng.shuffle(strata)
+        cols[name] = [lo + x * (hi-lo) for x in strata]
+    return [{name: cols[name][i] for name in bounds} for i in range(n)]
+
+def _sample_outputs(params, base):
+    p = _uniform_parameters(None, base, params)
+    out = simulate(Request(parameters=p))
+    if "error" in out:
+        raise ValueError(out["error"])
+    return out["timeline"][-1]
+
+def _summarize(rows):
+    summary = {}
+    for metric in OUTPUT_METRICS:
+        vals = sorted(float(row[metric]) for row in rows)
+        def pct(q):
+            pos = (len(vals)-1)*q
+            lo = int(pos); hi = min(lo+1, len(vals)-1)
+            return vals[lo] + (vals[hi]-vals[lo])*(pos-lo)
+        summary[metric] = {"p05": pct(.05), "p50": pct(.50), "p95": pct(.95),
+                           "mean": sum(vals)/len(vals), "min": vals[0], "max": vals[-1]}
+    return summary
+
+@app.post("/api/v1/uncertainty")
+def global_uncertainty(request: GlobalAnalysisRequest):
+    """Prior-predictive global uncertainty using LHS or ordinary Monte Carlo."""
+    import random
+    rng = random.Random(request.seed)
+    if request.method not in ("lhs", "monte_carlo"):
+        return {"error": "Use lhs or monte_carlo for prior-predictive uncertainty."}
+    base = request.parameters
+    if request.method == "lhs":
+        draws = _latin_hypercube(rng, request.samples, PARAMETER_BOUNDS)
+    else:
+        draws = [{name: rng.uniform(lo, hi) for name, (lo, hi) in PARAMETER_BOUNDS.items()}
+                 for _ in range(request.samples)]
+    outputs, parameter_draws = [], []
+    for draw in draws:
+        outputs.append(_sample_outputs(draw, base))
+        parameter_draws.append(draw)
+    return {"model_version": "0.3.0", "method": request.method,
+            "sampling": "independent uniform parameter priors; prior-predictive",
+            "samples": request.samples, "seed": request.seed,
+            "parameter_bounds": PARAMETER_BOUNDS,
+            "summary": _summarize(outputs),
+            "parameter_samples": parameter_draws,
+            "output_samples": [{k: row[k] for k in OUTPUT_METRICS} for row in outputs],
+            "warnings": ["Uniform bounds are exploratory assumptions, not literature-derived distributions.",
+                         "Percentiles describe propagated model uncertainty, not clinical confidence intervals."]}
+
+@app.post("/api/v1/mcmc")
+def posterior_mcmc(request: GlobalAnalysisRequest):
+    """Random-walk Metropolis posterior inference against explicitly supplied observations."""
+    import math, random
+    if not request.observations:
+        return {"error": "MCMC requires observations: [{metric, value, sd}, ...]."}
+    for obs in request.observations:
+        if obs.get("metric") not in OUTPUT_METRICS or not isinstance(obs.get("value"), (int, float)) or not isinstance(obs.get("sd"), (int, float)) or obs["sd"] <= 0:
+            return {"error": "Each observation needs a supported metric, numeric value, and positive sd."}
+    rng = random.Random(request.seed)
+    base = request.parameters
+    names = tuple(PARAMETER_BOUNDS)
+    def likelihood(values):
+        row = _sample_outputs(values, base)
+        ll = 0.0
+        for obs in request.observations:
+            z = (row[obs["metric"]] - obs["value"]) / obs["sd"]
+            ll += -.5*z*z - math.log(obs["sd"])
+        return ll, row
+    current = {name: (lo+hi)/2 for name, (lo, hi) in PARAMETER_BOUNDS.items()}
+    current_ll, current_out = likelihood(current)
+    chain, output_chain, accepted = [], [], 0
+    total = request.burn_in + request.samples*request.thin
+    proposal_sd = {name: (hi-lo)*.06 for name, (lo, hi) in PARAMETER_BOUNDS.items()}
+    for iteration in range(total):
+        proposal = {name: current[name] + rng.gauss(0, proposal_sd[name]) for name in names}
+        in_bounds = all(PARAMETER_BOUNDS[name][0] <= proposal[name] <= PARAMETER_BOUNDS[name][1] for name in names)
+        if in_bounds:
+            proposed_ll, proposed_out = likelihood(proposal)
+            if math.log(max(rng.random(), 1e-300)) < proposed_ll-current_ll:
+                current, current_ll, current_out = proposal, proposed_ll, proposed_out
+                accepted += 1
+        if iteration >= request.burn_in and (iteration-request.burn_in) % request.thin == 0:
+            chain.append(dict(current))
+            output_chain.append({k: current_out[k] for k in OUTPUT_METRICS})
+    return {"model_version": "0.3.0", "method": "random_walk_metropolis",
+            "sampling": "posterior conditional on supplied Gaussian observation errors and uniform bounded priors",
+            "samples": len(chain), "burn_in": request.burn_in, "thin": request.thin,
+            "acceptance_rate": accepted/total, "parameter_bounds": PARAMETER_BOUNDS,
+            "posterior_summary": _summarize(output_chain),
+            "parameter_summary": {name: _summarize([{name: x[name]} for x in chain])[name] for name in names},
+            "parameter_samples": chain, "output_samples": output_chain,
+            "observations": request.observations,
+            "warnings": ["Posterior results depend on the supplied observations, stated standard deviations, priors and proposal settings.",
+                         "Check convergence with multiple chains, trace plots, effective sample size and R-hat before scientific inference.",
+                         "This implementation is an exploratory single-chain Metropolis sampler, not a validated clinical inference pipeline."]}
