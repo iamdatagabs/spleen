@@ -5,7 +5,7 @@ const canvas=document.getElementById("spleen3dCanvas");
 const fallback=document.getElementById("spleen3dFallback");
 if(host&&canvas){
   try{
-    const THREE=await import("https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js");
+    const THREE=await import("./vendor/three.module.js");
     const scene=new THREE.Scene();
     scene.background=new THREE.Color("#0b1925");
     const camera=new THREE.PerspectiveCamera(34,1,.1,100);
