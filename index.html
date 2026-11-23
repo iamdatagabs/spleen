@@ -28,7 +28,7 @@
       <div class="spleen-view-controls"><span>Arraste o modelo para rotacionar</span><button type="button" id="spleenViewReset" class="ghost">↺ Restaurar vista</button></div>
       <div class="anatomy-legend"><span><i class="artery-dot"></i>Árvore arterial</span><span><i class="vein-dot"></i>Árvore venosa</span><span><i class="parenchyma-dot"></i>Parênquima</span><span><i class="micro-dot"></i>Rede microvascular</span></div>
       <div class="spatial-readouts"><div><span>Fluxo arterial esplênico</span><b id="spleen3dFlow">0,156 L/min</b></div><div><span>Índice relativo</span><b id="spleen3dPerfusion">100%</b></div><div><span>Pressão portal</span><b id="spleen3dPortal">10,0 mmHg</b></div></div>
-      <div class="territory-heading"><b>Compartimentos vasculares paralelos</b><small>Resistência relativa · distribuição de fluxo</small></div>
+      <div class="territory-heading"><b>Compartimentos vasculares paralelos</b><button id="resetTerritories" class="ghost" type="button">Restaurar resistências</button></div><small class="territory-subtitle">Resistência relativa · distribuição de fluxo</small>
       <div class="territory-controls">
         <label><span>Superior <b id="rSuperiorValue">1,0×</b></span><input id="rSuperior" type="range" min="0.5" max="2" step="0.1" value="1"><small>Q: <strong id="qSuperior">0,052 L/min</strong></small></label>
         <label><span>Intermediário <b id="rMiddleValue">1,0×</b></span><input id="rMiddle" type="range" min="0.5" max="2" step="0.1" value="1"><small>Q: <strong id="qMiddle">0,052 L/min</strong></small></label>
