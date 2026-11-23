@@ -126,4 +126,14 @@ s_{a,i}^{vis} &= \operatorname{clip}\left(s_0\sqrt{Q_{a,i}/Q_{ref}},s_{min},s_{m
 s_{v,i}^{vis} &= \operatorname{clip}\left(s_0\sqrt{Q_{v,i}/Q_{ref}},s_{min},s_{max}\right).
 \end{align}
 Os raios $r^{vis}$, velocidades gráficas $s^{vis}$ e classes cromáticas de pressão são parâmetros de renderização, não propriedades físicas adicionais do modelo. A classe cromática compara $P_i$ com uma referência computacional e não representa faixa clínica. A camada 3D não resolve campos espaciais de pressão, equações de Navier--Stokes, transporte de oxigênio ou microcirculação.
+
+
+\section{Entrega convectiva regional de oxigênio — v1.2}
+Para cada território esplênico $i$, a entrega convectiva regional é definida por
+\[
+DO_{2,i}=10\,Q_{a,i}\,C_{aO_2},
+\]
+com $Q_{a,i}$ em L/min, $C_{aO_2}$ em mL O$_2$/dL e $DO_{2,i}$ em mL O$_2$/min. O fator 10 realiza a conversão de litros para decilitros. O índice relativo é $DO_{2,i}/DO_{2,ref}$, em que $DO_{2,ref}=10 Q_{ref} C_{aO_2,ref}$ é uma referência computacional declarada. Os valores padrão são ilustrativos.
+
+A representação espacial utiliza interpolação gaussiana dos índices territoriais para colorir os vértices da superfície paramétrica. Essa operação é exclusivamente gráfica. Não constitui solução de uma equação de advecção-difusão-reação, não calcula extração ou consumo de oxigênio e não permite inferir oxigenação tecidual, hipóxia ou disponibilidade intracelular.
 \end{document}
