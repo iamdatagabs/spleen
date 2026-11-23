@@ -14,7 +14,8 @@ The latest commits may still be propagating while their Actions runs finish. [De
 - Coupled portal pressure compartment with compliance and hepatic outflow resistance.
 - Simplified feedback from portal pressure to regional target flow.
 - Derived portal inflow, hepatic outflow, hepatic arterial flow and hepatic oxygen-delivery indicator.
-- Browser simulation, time-series chart, CSV export, and an interactive global-uncertainty workspace.\n- Interactive conceptual 3D spleen view with parenchyma, splenic artery tree, illustrative microvascular network and venous return; vessel emphasis is coupled to the aggregate splenic arterial flow state.
+- Browser simulation, time-series chart, CSV export, and an interactive global-uncertainty workspace.
+- Interactive conceptual 3D spleen view with parenchyma, splenic artery tree, illustrative microvascular network and venous return; vessel emphasis is coupled to the aggregate splenic arterial flow state.
 - Browser-side LHS, Monte Carlo and exploratory four-chain MCMC with split-R-hat, approximate ESS and lag-1 autocorrelation diagnostics, with P05/P50/P95 summaries and CSV export.
 - Python API endpoints: `POST /api/v1/sensitivity`, `POST /api/v1/uncertainty` (LHS/Monte Carlo) and `POST /api/v1/mcmc` (requires observations).
 - Python/FastAPI reference implementation with configurable structural parameters and a local OAT sensitivity endpoint (`POST /api/v1/sensitivity`).
