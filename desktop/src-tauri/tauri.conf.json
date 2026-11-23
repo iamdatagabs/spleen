@@ -3,35 +3,21 @@
   "productName": "SPLEEN",
   "version": "0.1.0",
   "identifier": "org.spleen.simulator",
-  "build": {
-    "frontendDist": "../.."
-  },
+  "build": { "frontendDist": "../frontend" },
   "app": {
-    "windows": [
-      {
-        "title": "SPLEEN — Splanchnic Perfusion Simulation Environment",
-        "width": 1440,
-        "height": 960,
-        "minWidth": 1100,
-        "minHeight": 720,
-        "resizable": true
-      }
-    ],
+    "windows": [{
+      "title": "SPLEEN — Splanchnic Perfusion Simulation Environment",
+      "width": 1440, "height": 960, "minWidth": 1100, "minHeight": 720,
+      "resizable": true
+    }],
     "security": {
-      "csp": "default-src 'self' asset: http://asset.localhost; img-src 'self' asset: http://asset.localhost data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval'; connect-src ipc: http://ipc.localhost http://127.0.0.1:8765"
+      "csp": "default-src 'self' asset: http://asset.localhost; img-src 'self' asset: http://asset.localhost data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src ipc: http://ipc.localhost http://127.0.0.1:8765"
     }
   },
   "bundle": {
     "active": true,
     "targets": ["nsis", "msi"],
-    "resources": [
-      "spleen-api.exe"
-    ],
-    "windows": {
-      "nsis": {
-        "displayLanguageSelector": false,
-        "installMode": "currentUser"
-      }
-    }
+    "resources": ["spleen-api.exe"],
+    "windows": { "nsis": { "displayLanguageSelector": false, "installMode": "currentUser" } }
   }
 }
