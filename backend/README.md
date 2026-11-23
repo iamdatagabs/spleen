@@ -49,3 +49,14 @@ A integração numérica é refinada automaticamente até dt ≤ 0,0025 min dura
 ## MCMC diagnostics (v0.5.0)
 
 `POST /api/v1/mcmc` accepts `chains` (2–8; default 4), `samples`, `burn_in`, `thin`, `seed` and explicit Gaussian observations. The response includes per-chain samples and acceptance rates, split-R-hat, approximate ESS and lag-1 autocorrelation for each parameter. The convergence flag uses exploratory thresholds (R-hat < 1.05 and ESS ≥ 100); it is not proof of convergence, identifiability or model validity. Synthetic-data tests are internal consistency checks only.
+
+
+## Additional methodological endpoints (v0.6.0)
+
+All endpoints accept the `GlobalAnalysisRequest` payload, including `parameters`, `samples` and `seed`.
+
+- `POST /api/v1/identifiability`: local scaled finite-difference sensitivity matrix, numerical rank and pairwise column cosines.
+- `POST /api/v1/prior-sensitivity`: prior-predictive comparison under contracted, reference and expanded uniform bounds.
+- `POST /api/v1/synthetic-recovery`: synthetic truth/noise experiment with prior importance-sampling ranks, normalized median errors and importance-sampling ESS.
+
+The synthetic recovery route is a preliminary SBC-style diagnostic, not formal validated Simulation-Based Calibration. A low importance-sampling ESS indicates weight degeneracy. All three routes use the model itself and synthetic inputs; none constitutes physiological validation.
