@@ -1,4 +1,5 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+import { distributeTerritoryFlow } from "./spatial-model.mjs";
 
 const host=document.getElementById("spleen3d");
 const canvas=document.getElementById("spleen3dCanvas");
@@ -81,10 +82,8 @@ if(host&&canvas){
     let resistances=[1,1,1],flows=[.052,.052,.052];
     const fmt=n=>Number(n).toLocaleString("pt-BR",{minimumFractionDigits:3,maximumFractionDigits:3});
     const updateCompartments=()=>{
-      const conductance=resistances.map(r=>1/Math.max(.1,r));
-      const sum=conductance.reduce((a,b)=>a+b,0);
       const total=Number(state?.regionalFlows?.spleen??.156);
-      flows=conductance.map(g=>total*g/sum);
+      flows=distributeTerritoryFlow(total,resistances);
       territories.forEach((t,i)=>{
         const frac=total>0?flows[i]/total:1/3;
         zoneMeshes[i].material.opacity=.13+.46*frac;
