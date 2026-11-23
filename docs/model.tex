@@ -64,11 +64,20 @@ em que $\tau_i$ são constantes de tempo regionais (min) e $s_\tau$ é um fator 
 Q_{\mathrm{portal,in}}&=Q_{int}+Q_b+Q_{panc},\\
 Q_{\mathrm{portal,out}}&=\max\left(0,\frac{P_p-P_{hv}}{R_h}\right),
 \end{align}
+A estrutura atual inclui os fluxos intestinal, esplênico e pancreático na entrada portal. O fluxo do compartimento gástrico integra o fluxo arterial esplâncnico total, mas não é incluído no retorno portal nesta versão reduzida. Essa omissão é uma hipótese estrutural explícita, pendente de revisão anatômica e fisiológica; não deve ser interpretada como ausência de drenagem gástrica para o sistema porta.
+\begin{align}
 com $P_{hv}=5$ mmHg e $R_h$ em mmHg/(L\,min$^{-1}$). A dinâmica do compartimento portal é
 \begin{equation}
 \boxed{C_p\frac{dP_p}{dt}=Q_{\mathrm{portal,in}}-Q_{\mathrm{portal,out}}},
 \end{equation}
 onde $C_p$ é a complacência efetiva (L/mmHg).
+
+\section{Pressão de perfusão abdominal como variável derivada}
+A interface calcula a pressão de perfusão abdominal a partir das entradas de pressão arterial média e pressão intra-abdominal:
+\[
+APP = PAM - PIA.
+\]
+No estado atual, APP é exibida como indicador derivado, mas o gradiente usado pela função fenomenológica de fluxo-alvo contém termos adicionais para pressão venosa efetiva e pneumoperitônio. Portanto, APP não é ainda a única variável de pressão que dirige as EDOs. A relação entre pressão arterial, pressão intra-abdominal, pressão venosa de saída e resistência vascular requer revisão fisiológica antes de se alterar a formulação.
 
 \section{Indicadores derivados}
 O componente arterial hepático simplificado é
