@@ -90,14 +90,16 @@ def list_experiments(limit: int = 50) -> list[dict[str, Any]]:
     return [_decode(row) for row in rows]
 
 def get_experiment(experiment_id: str) -> dict[str, Any] | None:
-    with connect() as db:
+    with closing(connect()) as db:
         row = db.execute("SELECT * FROM experiments WHERE id = ?", (experiment_id,)).fetchone()
     return _decode(row) if row else None
 
 def delete_experiment(experiment_id: str) -> bool:
-    with connect() as db:
+    with closing(connect()) as db:
         cursor = db.execute("DELETE FROM experiments WHERE id = ?", (experiment_id,))
-        return cursor.rowcount > 0
+        deleted = cursor.rowcount > 0
+        db.commit()
+        return deleted
 
 @router.get("/health")
 def desktop_health():
