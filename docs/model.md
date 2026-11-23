@@ -287,3 +287,14 @@ Cada território expõe perfis nodais simplificados de pressão no trajeto arter
 Cada caminho contém três quedas de pressão com frações fixas (25%, 50%, 25%) para produzir nós intermediários visualizáveis. Essas frações não representam calibres, comprimentos, resistências segmentares ou anatomia medidos. A pressão nodal intermediária é uma interpolação determinística entre as condições de contorno, não a solução de uma rede vascular anatômica. O modelo continua com armazenamento complacente concentrado no compartimento territorial; não resolve equações de momentum, fluxo pulsátil, bifurcações acopladas, colaterais, microcirculação ou CFD.
 
 Os perfis servem como camada de visualização e inspeção de gradientes, mantendo explícita a diferença entre variáveis de estado (pressão territorial e fluxos) e nós interpolados para representação espacial.
+
+
+## 22. Acoplamento visual hemodinâmico 3D — v1.1.0 (preview)
+
+A cena Three.js consome os estados transitórios de cada território para atualizar: intensidade visual proporcional à fração do fluxo arterial agregado; marcador nodal de pressão em quatro classes visuais; espessura dos ramos arteriais conforme o fluxo de entrada; espessura dos ramos venosos conforme o fluxo de saída; partículas independentes nos trajetos arterial e venoso, com velocidade gráfica limitada e proporcional à raiz quadrada do fluxo relativo; e leitura numérica de fluxo arterial, fluxo venoso e pressão local por território.
+
+A função `territoryVisualMetrics` em `spatial-model.mjs` é exclusivamente visual. Não altera EDOs, parâmetros, fluxos ou pressões. A legenda categórica é relativa ao valor computacional de referência de 10 mmHg, não um limiar fisiológico ou clínico. A superfície, a árvore vascular e os territórios continuam procedurais e não derivados de segmentação TC/RM ou atlas. Espessura e velocidade das partículas não representam calibres ou velocidades hemodinâmicas medidos.
+
+### Verificações automatizadas
+
+A suíte Node verifica conservação da distribuição de fluxo, ordenação por resistência, resposta monotônica da espessura visual ao fluxo, limites da velocidade gráfica e rejeição de estados inválidos. A suíte Python permanece responsável pelos invariantes hemodinâmicos do modelo de referência.
