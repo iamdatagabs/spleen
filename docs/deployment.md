@@ -1,20 +1,31 @@
 # Publicação no GitHub Pages
 
-O repositório contém um workflow em .github/workflows/pages.yml que publica a raiz do projeto a cada push em main.
+## Configuração atual
 
-## Ativação inicial (necessária uma única vez)
-1. Abra https://github.com/iamdatagabs/spleen/settings/pages
-2. Em Build and deployment, selecione Source = GitHub Actions.
-3. Salve a configuração, se solicitado.
-4. Abra a aba Actions e acompanhe o workflow Deploy SPLEEN to GitHub Pages até ficar verde.
+O repositório está publicado pelo fluxo nativo do GitHub Pages, usando a branch `main` e a pasta raiz (`/root`). O GitHub executa automaticamente o build do site após novos commits.
 
-URL esperada: https://iamdatagabs.github.io/spleen/
+URL pública: https://iamdatagabs.github.io/spleen/
 
-O workflow não consegue substituir essa ativação inicial nas configurações do repositório. Após a ativação, os próximos commits serão publicados automaticamente.
+## Como atualizar
+
+1. Faça commit das alterações na branch `main`.
+2. Acesse a aba [Actions](https://github.com/iamdatagabs/spleen/actions).
+3. Acompanhe a execução **pages build and deployment**.
+4. Quando build e deploy estiverem concluídos com sucesso, atualize a página pública.
+
+## Configuração do repositório
+
+Em Settings → Pages, mantenha:
+- Build and deployment → Source: **Deploy from a branch**
+- Branch: **main**
+- Folder: **/ (root)**
+
+O workflow customizado de deploy por Actions foi removido porque conflitou com a configuração nativa por branch. O workflow `.github/workflows/tests.yml` permanece ativo para executar os testes matemáticos do backend.
 
 ## Diagnóstico
-- Falha em configure-pages: confira se Pages foi habilitado e se Source está como GitHub Actions.
-- Falha de permissão: confira Settings > Actions > General > Workflow permissions e as permissões Pages e ID token no workflow.
-- Página 404 logo após sucesso: aguarde a propagação e confira se o deploy foi feito no repositório correto.
 
-O site é estático e não executa backend Python. Para testar a API localmente, siga backend/README.md.
+- **404:** confirme a branch `main`, pasta raiz e aguarde a propagação.
+- **Build Jekyll com erro:** verifique os arquivos e a saída do workflow `pages build and deployment`.
+- **API indisponível:** GitHub Pages hospeda somente os arquivos estáticos; a API FastAPI precisa de hospedagem separada. Consulte `backend/README.md`.
+
+O site é um protótipo experimental e não deve ser utilizado para decisões clínicas.
