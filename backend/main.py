@@ -82,7 +82,7 @@ def run_simulation(request: Request):
 @app.post("/api/v1/sensitivity")
 def sensitivity(request: Request):
     """One-at-a-time local sensitivity; ±10% for model coefficients, other inputs fixed."""
-    base_p = request.parameters
+    base_p = request.parameters.model_copy(update={"dt_min": min(request.parameters.dt_min, .0025)})
     baseline = simulate(Request(parameters=base_p))["timeline"][-1]
     metrics = ("total_flow_l_min", "portal_pressure_mmhg",
                "hepatic_portal_outflow_l_min", "hepatic_oxygen_delivery_ml_min")
@@ -152,7 +152,8 @@ def _latin_hypercube(rng, n, bounds):
     return [{name: cols[name][i] for name in bounds} for i in range(n)]
 
 def _sample_outputs(params, base):
-    p = _uniform_parameters(None, base, params)
+    stable_base = base.model_copy(update={"dt_min": min(base.dt_min, .0025)})
+    p = _uniform_parameters(None, stable_base, params)
     out = simulate(Request(parameters=p))
     if "error" in out:
         raise ValueError(out["error"])
