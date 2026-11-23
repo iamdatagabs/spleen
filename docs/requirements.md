@@ -33,3 +33,9 @@ Todos os controles atualizam seus valores; executar atualiza métricas, gráfico
 
 ## Contrato futuro de API
 POST /api/v1/simulations. Entrada: model_version, parameters, duration_min, dt_min e scenario_id opcional. Saída: simulation_id, model_version, time_min, fluxos regionais, fluxo portal, indicador de entrega hepática de oxigênio, hipóteses e avisos. A API deverá validar unidades e limites, registrar versão e proveniência dos parâmetros. A versão GitHub Pages atual não chama essa API.
+
+## Requisitos espaciais — v1.1 preview
+- RF-09: atualizar separadamente os ramos arteriais e venosos com os fluxos territoriais simulados.
+- RF-10: exibir marcadores e legenda de pressão territorial relativa à referência computacional.
+- RF-11: manter leituras numéricas de fluxo arterial, fluxo venoso e pressão local sincronizadas ao último estado simulado.
+- RNF-08: manter a transformação visual desacoplada das equações e impedir que escalas gráficas sejam interpretadas como medidas anatômicas ou clínicas.
