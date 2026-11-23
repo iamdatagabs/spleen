@@ -30,6 +30,14 @@ jobs:
           python -m pip install -r backend/requirements.txt pytest pyinstaller
       - name: Test backend
         run: python -m pytest backend/tests -q
+      - name: Check frontend JavaScript syntax
+        run: |
+          node --check app.js
+          node --check analysis.js
+          node --check physiology.js
+          node --check desktop-bridge.js
+          node --check spleen3d.mjs
+          node --check spatial-model.mjs
       - name: Install desktop dependencies
         working-directory: desktop
         run: npm install
