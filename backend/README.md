@@ -14,7 +14,7 @@ Documentação interativa em http://127.0.0.1:8000/docs.
 POST /api/v1/simulations recebe parâmetros e retorna série temporal determinística. Não está hospedado pelo GitHub Pages.
 
 Para hospedagem futura, publicar o serviço Python separadamente, configurar CORS para a origem Pages, limitar requisições, registrar logs estruturados e fixar versão do modelo. Não armazenar dados identificáveis de pacientes no protótipo.
-## Análises globais (v0.4.0)
+## Análises globais (v0.5.0)
 - `POST /api/v1/sensitivity`: sensibilidade local OAT.
 - `POST /api/v1/uncertainty`: LHS ou Monte Carlo (`method`: `lhs` ou `monte_carlo`).
 - `POST /api/v1/mcmc`: Random-Walk Metropolis, exige observações `metric`, `value` e `sd`.
@@ -43,4 +43,9 @@ Exemplo de corpo para MCMC:
 }
 ```
 
-A integração numérica é refinada automaticamente até dt ≤ 0,0025 min durante análises globais para reduzir instabilidade numérica em combinações de complacência/resistência com escalas de tempo curtas. Os intervalos paramétricos são hipóteses exploratórias, não priors clínicos fundamentados. O MCMC atual usa uma única cadeia e não fornece R-hat ou tamanho efetivo de amostra; não use os resultados para inferência científica sem diagnósticos adicionais.
+A integração numérica é refinada automaticamente até dt ≤ 0,0025 min durante análises globais para reduzir instabilidade numérica em combinações de complacência/resistência com escalas de tempo curtas. Os intervalos paramétricos são hipóteses exploratórias, não priors clínicos fundamentados. O MCMC usa cadeias independentes e fornece diagnósticos exploratórios; não use os resultados para inferência científica sem avaliação adicional.
+
+
+## MCMC diagnostics (v0.5.0)
+
+`POST /api/v1/mcmc` accepts `chains` (2–8; default 4), `samples`, `burn_in`, `thin`, `seed` and explicit Gaussian observations. The response includes per-chain samples and acceptance rates, split-R-hat, approximate ESS and lag-1 autocorrelation for each parameter. The convergence flag uses exploratory thresholds (R-hat < 1.05 and ESS ≥ 100); it is not proof of convergence, identifiability or model validity. Synthetic-data tests are internal consistency checks only.
