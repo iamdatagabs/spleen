@@ -188,3 +188,20 @@ Os valores acima são limiares provisórios de engenharia para demonstrar a lóg
 4. Separar modelo anatômico 3D, modelo hemodinâmico compartimental e eventual CFD/EDP.
 5. Validar estabilidade, positividade, conservação, convergência numérica e comportamento em condições-limite.
 6. Desenvolver e avaliar qualquer índice composto somente após consenso clínico e protocolo de validação.
+
+
+## 15. Integração de estado entre simulador e indicadores — v0.6.x
+
+O simulador browser-side publica um objeto estruturado `window.SPLEEN_MODEL_STATE` após cada execução. Esse objeto contém entradas, tempo final, fluxos arteriais regionais, fluxo total, entrada portal, pressão portal, saída portal-hepática, fluxo arterial hepático e entrega hepática estimada de oxigênio. A camada de fisiologia lê esse objeto, em vez de extrair números do texto renderizado na interface. Isso reduz acoplamento com a apresentação e evita erros de parsing/localização numérica.
+
+Os indicadores permanecem derivados de variáveis do modelo. APP = PAM − PIA é calculada a partir dos controles atuais; fluxo esplênico e pressão portal referem-se ao último estado simulado. O fluxo do compartimento esplênico é fluxo arterial agregado e não representa diretamente perfusão microvascular ou oxigenação tecidual.
+
+## 16. Itens para revisão médico-matemática
+
+1. **Drenagem gástrica:** a formulação atual define entrada portal como fluxo intestinal + esplênico + pancreático, omitindo o compartimento gástrico. A fração da drenagem gástrica que deve compor o retorno portal deve ser discutida com especialistas e sustentada por uma definição anatômica/fisiológica explícita.
+2. **Variável esplênica:** distinguir fluxo arterial macroscópico, perfusão microvascular, distribuição regional e entrega/consumo de oxigênio.
+3. **Pneumoperitônio e pressão:** revisar o uso de PIA como entrada, a pressão venosa efetiva e o gradiente que dirige o fluxo; evitar dupla contagem de efeitos de pressão.
+4. **Vasopressor e volemia:** substituir índices abstratos por variáveis mecanísticas identificáveis, quando houver parâmetros e dados adequados; não interpretar o índice atual como dose.
+5. **Oxigenação hepática:** explicitar conteúdo arterial de oxigênio, componente arterial hepático, fluxo portal e limites de estimar entrega sem consumo/extração tecidual.
+
+A atualização adiciona transparência e testes de invariantes; não modifica ainda a estrutura fisiológica do sistema de EDOs. Mudanças nos compartimentos ou nos mecanismos serão feitas após decisão clínica e revisão de dimensionalidade, conservação e estabilidade.
