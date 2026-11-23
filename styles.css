@@ -18,11 +18,11 @@
 .spleen-side{filter:brightness(.72)}
 .vascular-bed{transform:translateZ(30px);transform-style:preserve-3d}
 .arterial-tree,.venous-tree,.capillary-network{vector-effect:non-scaling-stroke}
-.artery-main{stroke-width:calc(6px * var(--flow-scale));filter:drop-shadow(0 0 5px #ff625a99)}
+.artery-main{stroke-width:var(--artery-width,6px);filter:drop-shadow(0 0 5px #ff625a99)}
 .artery-branch{stroke-width:calc(2.7px * var(--flow-scale));opacity:calc(.48 + var(--flow-scale)*.3)}
 .vein-main{stroke-width:calc(6px * var(--flow-scale));filter:drop-shadow(0 0 5px #72aaff99)}
 .vein-branch{stroke-width:calc(2.7px * var(--flow-scale));opacity:calc(.48 + var(--flow-scale)*.3)}
-.capillary-network{opacity:calc(.28 + var(--flow-scale)*.34);stroke-width:calc(1.2px * var(--flow-scale))}
+.capillary-network{opacity:var(--micro-opacity,.6);stroke-width:var(--capillary-width,1.2px)}
 .flow-particles{opacity:calc(.35 + var(--flow-scale)*.4)}
 .spleen-view-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--muted);font-size:10px;margin:9px 0 2px}
 .spleen-view-controls button{font-size:10px;padding:6px 9px}
