@@ -74,3 +74,16 @@ C é concentração de oxigênio, v velocidade local, D tensor de difusão efeti
 
 ## 9. Segurança
 Nenhuma saída deve orientar conduta clínica, diagnóstico, prescrição ou decisão intraoperatória. O sistema é exclusivamente experimental e educacional.
+
+## 10. Análise local de sensibilidade — v0.3.0
+A API disponibiliza `POST /api/v1/sensitivity`. O endpoint executa análise one-at-a-time (OAT), mantendo o cenário hemodinâmico fixo e perturbando individualmente quatro parâmetros estruturais em ±10%:
+- complacência portal (C_p);
+- resistência efetiva de drenagem hepática (R_h);
+- ganho de retroalimentação portal;
+- escala das constantes de tempo regionais (tau_scale).
+
+Para cada perturbação são retornados os valores basal, baixo e alto para fluxo esplâncnico total, pressão portal, saída portal-hepática e entrega hepática de oxigênio. Também é calculada a elasticidade normalizada local:
+`E = (dY/dp) × (p/Y)`.
+A variação percentual entre os extremos é fornecida como descrição da resposta à faixa testada; não é intervalo de confiança.
+
+Esta é uma análise local exploratória, dependente do cenário basal e da amplitude arbitrada. Não captura interações entre parâmetros nem distribuições probabilísticas. A próxima etapa metodológica é Latin Hypercube Sampling ou Monte Carlo, após definir distribuições justificadas por literatura/dados. O endpoint não substitui calibração ou validação.
