@@ -41,11 +41,11 @@ latest=result;$("uqCsv").disabled=false;}
 function run(){const method=$("uqMethod").value,n=Number($("uqSamples").value),burn=Number($("uqBurn").value),thin=Number($("uqThin").value),seed=Number($("uqSeed").value)||0,p=baseInputs();$("runUQ").disabled=true;$("uqStatus").textContent="Executando "+method.toUpperCase()+"…";
 setTimeout(()=>{try{let draws,outputs,acceptance,obs=null;if(method==="lhs")draws=lhs(n,seed);else if(method==="mc")draws=mc(n,seed);else{obs=validateObs($("uqObservations").value);const r=runMCMC(n,burn,thin,seed,p,obs);draws=r.chain;outputs=r.outputs;acceptance=r.acceptance;}
 if(method!=="mcmc")outputs=draws.map(d=>simulateFinal(p,d));
-const result={method,outputs,parameterSummary:summarize(draws,names),summary:summarize(outputs,metrics),acceptance,observations:obs};
+const result={method,outputs,parameterSamples:draws,parameterSummary:summarize(draws,names),summary:summarize(outputs,metrics),acceptance,observations:obs};
 render(result,method==="lhs"?"Latin Hypercube Sampling":method==="mc"?"Monte Carlo":"Random-walk Metropolis MCMC");
 $("uqStatus").textContent="Concluído. Resultados condicionados às faixas e hipóteses selecionadas.";}catch(e){$("uqStatus").textContent="Não foi possível executar: "+e.message;}finally{$("runUQ").disabled=false;}},30);}
-function exportCsv(){if(!latest)return;const rows=[["sample",...names,...metrics].join(",")];latest.outputs.forEach((o,i)=>rows.push([i+1,...names.map(k=>latest.method==="mcmc"?latest.parameterSummary[k].p50:""),...metrics.map(k=>o[k])].join(",")));const blob=new Blob([rows.join("\n")],{type:"text/csv"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="spleen-global-analysis-"+latest.method+".csv";a.click();URL.revokeObjectURL(url);}
+function exportCsv(){if(!latest)return;const rows=[["sample",...names,...metrics].join(",")];latest.outputs.forEach((o,i)=>rows.push([i+1,...names.map(k=>latest.parameterSamples[i][k]),...metrics.map(k=>o[k])].join(",")));const blob=new Blob([rows.join("\n")],{type:"text/csv"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="spleen-global-analysis-"+latest.method+".csv";a.click();URL.revokeObjectURL(url);}
 function toggle(){const m=$("uqMethod").value,is=$("observationPanel");is.style.display=m==="mcmc"?"block":"none";$("burnControl").style.display=m==="mcmc"?"block":"none";$("thinControl").style.display=m==="mcmc"?"block":"none";}
-["uqSamples","uqBurn","uqThin"].forEach((id)=>$(id).addEventListener("input",()=>{$(id.replace("uq","").toLowerCase()+"Value").textContent=$(id).value;}));
+const valueTargets={uqSamples:"sampleValue",uqBurn:"burnValue",uqThin:"thinValue"};Object.entries(valueTargets).forEach(([id,target])=>$(id).addEventListener("input",()=>{$(target).textContent=$(id).value;}));
 $("uqMethod").addEventListener("change",toggle);$("runUQ").addEventListener("click",run);$("uqCsv").addEventListener("click",exportCsv);toggle();
 })();
