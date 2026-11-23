@@ -5,7 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="SPLEEN API", version="0.8.0")
-app.add_middleware(CORSMiddleware, allow_origins=["http://tauri.localhost", "https://tauri.localhost", "http://localhost:1420"], allow_methods=["GET", "POST", "DELETE"], allow_headers=["Content-Type"])\n\nfrom backend.desktop_store import router as desktop_router\napp.include_router(desktop_router)
+app.add_middleware(CORSMiddleware, allow_origins=["http://tauri.localhost", "https://tauri.localhost", "http://localhost:1420"], allow_methods=["GET", "POST", "DELETE"], allow_headers=["Content-Type"])
+
+from backend.desktop_store import router as desktop_router
+app.include_router(desktop_router)
 FRACTIONS = (.18, .62, .13, .07)
 TAU = (1.8, 2.8, 1.5, 2.2)
 NAMES = ("stomach", "intestine", "spleen", "pancreas")
