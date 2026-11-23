@@ -48,6 +48,6 @@ The packaged process binds to 127.0.0.1:8765. It is owned by the desktop shell a
 
 ## Current implementation boundary
 
-This is the desktop foundation, not yet a fully integrated desktop release. The frontend currently runs the existing browser simulation; the API is bundled and started for subsequent API-backed workflows. User-selectable data directories, code signing, installer upgrade testing, and end-to-end Windows validation remain follow-up work. Experiment records are local and should contain no patient identifiers or protected health information.
+This is an integrated desktop foundation, but not yet a signed production release. The current numerical simulation remains in the browser frontend; the local API provides health monitoring and SQLite experiment persistence, while the existing reference-model endpoints remain available for progressive integration. User-selectable data directories, code signing, installer upgrade testing, and end-to-end Windows validation remain follow-up work. Experiment records are local and must not contain patient identifiers or protected health information.
 
 SPLEEN is an experimental research/education prototype, not clinically validated software or a clinical decision-support system.
