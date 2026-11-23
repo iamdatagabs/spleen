@@ -59,7 +59,7 @@ def test_default_parameters_preserve_equilibrium():
 
 def test_sensitivity_respects_parameter_bounds():
     payload = Parameters(
-        duration_min=2, portal_compliance=.005, hepatic_resistance=.1,
+        duration_min=2, portal_compliance=.0051, hepatic_resistance=.1001,
         portal_feedback_gain=0, tau_scale=.25
     )
     result = sensitivity(Request(parameters=payload))
