@@ -243,6 +243,149 @@ def _effective_sample_size(chains):
         rho_sum += rho
     return min(float(m*n), (m*n)/(1+2*rho_sum))
 
+
+def _matrix_rank(matrix, tolerance=1e-8):
+    if not matrix:
+        return 0
+    a = [list(map(float, row)) for row in matrix]
+    rows, cols = len(a), len(a[0])
+    scale = max((abs(v) for row in a for v in row), default=1.0)
+    tol = tolerance * max(1.0, scale)
+    rank = 0
+    for col in range(cols):
+        pivot = max(range(rank, rows), key=lambda r: abs(a[r][col]), default=rank)
+        if rank >= rows or abs(a[pivot][col]) <= tol:
+            continue
+        a[rank], a[pivot] = a[pivot], a[rank]
+        div = a[rank][col]
+        a[rank] = [v/div for v in a[rank]]
+        for r in range(rows):
+            if r != rank:
+                factor = a[r][col]
+                a[r] = [x-factor*y for x,y in zip(a[r],a[rank])]
+        rank += 1
+        if rank == rows:
+            break
+    return rank
+
+@app.post("/api/v1/identifiability")
+def identifiability(request: GlobalAnalysisRequest):
+    """Local, scaled sensitivity-rank screening; not a proof of structural identifiability."""
+    base = request.parameters.model_copy(update={"dt_min": min(request.parameters.dt_min, .01)})
+    baseline = _sample_outputs({k: (lo+hi)/2 for k,(lo,hi) in PARAMETER_BOUNDS.items()}, base)
+    metrics = OUTPUT_METRICS
+    names = tuple(PARAMETER_BOUNDS)
+    columns = []
+    for name in names:
+        lo, hi = PARAMETER_BOUNDS[name]
+        center = (lo+hi)/2
+        delta = (hi-lo)*1e-3
+        low = {k:(a+b)/2 for k,(a,b) in PARAMETER_BOUNDS.items()}
+        high = dict(low)
+        low[name] = max(lo, center-delta)
+        high[name] = min(hi, center+delta)
+        yl, yh = _sample_outputs(low, base), _sample_outputs(high, base)
+        columns.append([(yh[m]-yl[m])/(high[name]-low[name])*(hi-lo)/max(abs(baseline[m]),1e-8) for m in metrics])
+    matrix = [[columns[j][i] for j in range(len(names))] for i in range(len(metrics))]
+    norms = [math.sqrt(sum(v*v for v in col)) for col in columns]
+    correlations = {}
+    for i,a in enumerate(names):
+        for j in range(i+1,len(names)):
+            b=names[j]
+            denom=norms[i]*norms[j]
+            correlations[a+"__"+b] = sum(x*y for x,y in zip(columns[i],columns[j]))/denom if denom else None
+    rank = _matrix_rank(matrix)
+    return {"method":"local_scaled_sensitivity_rank_screen","parameters":names,"metrics":metrics,
+            "scaled_sensitivity_matrix":matrix,"column_norms":dict(zip(names,norms)),
+            "sensitivity_column_cosines":correlations,"local_rank":rank,
+            "maximum_rank":min(len(metrics),len(names)),
+            "interpretation":"A deficient or ill-conditioned local sensitivity matrix indicates weakly distinguishable parameter effects for these outputs and this operating point. Full rank does not prove global or structural identifiability.",
+            "warnings":["Local finite differences at one operating point only.",
+                        "Results depend on selected outputs, scaling, numerical integration and parameter bounds.",
+                        "Structural identifiability requires analysis of the full model and observation process."]}
+
+@app.post("/api/v1/prior-sensitivity")
+def prior_sensitivity(request: GlobalAnalysisRequest):
+    """Compare prior-predictive summaries under contracted, reference and expanded uniform bounds."""
+    import random
+    base=request.parameters.model_copy(update={"dt_min":min(request.parameters.dt_min,.01)})
+    rng=random.Random(request.seed)
+    scenarios={}
+    for label,factor in (("narrow",.5),("reference",1.0),("wide",1.5)):
+        bounds={}
+        for name,(lo,hi) in PARAMETER_BOUNDS.items():
+            center=(lo+hi)/2
+            half=(hi-lo)*factor/2
+            bounds[name]=(max(0.0,center-half),center+half)
+        draws=[{name:rng.uniform(*bounds[name]) for name in bounds} for _ in range(request.samples)]
+        outputs=[_sample_outputs(draw,base) for draw in draws]
+        scenarios[label]={"bounds":bounds,"summary":_summarize(outputs)}
+    comparison={}
+    for metric in OUTPUT_METRICS:
+        ref=scenarios["reference"]["summary"][metric]
+        comparison[metric]={label:{
+            "p05_shift_pct":100*(scenarios[label]["summary"][metric]["p05"]-ref["p05"])/max(abs(ref["p05"]),1e-8),
+            "p50_shift_pct":100*(scenarios[label]["summary"][metric]["p50"]-ref["p50"])/max(abs(ref["p50"]),1e-8),
+            "p95_shift_pct":100*(scenarios[label]["summary"][metric]["p95"]-ref["p95"])/max(abs(ref["p95"]),1e-8)
+        } for label in ("narrow","wide")}
+    return {"method":"prior_predictive_sensitivity","samples_per_scenario":request.samples,
+            "scenarios":scenarios,"relative_quantile_shifts_vs_reference":comparison,
+            "warnings":["Uniform distributions are stress-test assumptions, not evidence-based priors.",
+                        "This compares prior-predictive output distributions; it is not posterior robustness analysis."]}
+
+@app.post("/api/v1/synthetic-recovery")
+def synthetic_recovery(request: GlobalAnalysisRequest):
+    """Preliminary importance-sampling rank/recovery experiment on self-generated synthetic data."""
+    import random
+    base=request.parameters.model_copy(update={"duration_min":min(request.parameters.duration_min,5.0),
+                                               "dt_min":min(request.parameters.dt_min,.01)})
+    rng=random.Random(request.seed)
+    names=tuple(PARAMETER_BOUNDS)
+    metrics=OUTPUT_METRICS
+    reps=min(20,max(3,request.samples//20))
+    candidate_count=min(500,max(100,request.samples))
+    ranks={name:[] for name in names}
+    errors={name:[] for name in names}
+    importance_ess=[]
+    for rep in range(reps):
+        truth={name:rng.uniform(*PARAMETER_BOUNDS[name]) for name in names}
+        truth_output=_sample_outputs(truth,base)
+        sds={metric:max(abs(truth_output[metric])*.03,1e-3) for metric in metrics}
+        observed={metric:truth_output[metric]+rng.gauss(0,sds[metric]) for metric in metrics}
+        candidates=[{name:rng.uniform(*PARAMETER_BOUNDS[name]) for name in names} for _ in range(candidate_count)]
+        log_weights=[]
+        for candidate in candidates:
+            pred=_sample_outputs(candidate,base)
+            log_weights.append(-.5*sum(((pred[m]-observed[m])/sds[m])**2 for m in metrics))
+        max_log=max(log_weights)
+        weights=[math.exp(v-max_log) for v in log_weights]
+        total=sum(weights)
+        normalized=[w/total for w in weights]
+        importance_ess.append(1/sum(w*w for w in normalized))
+        # Weighted empirical posterior ranks: randomized tie handling is not required for continuous draws.
+        for name in names:
+            rank=sum(w for candidate,w in zip(candidates,normalized) if candidate[name] < truth[name])
+            ranks[name].append(rank)
+            ordered=sorted((candidate[name],w) for candidate,w in zip(candidates,normalized))
+            cumulative=0.0
+            median=ordered[-1][0]
+            for value,weight in ordered:
+                cumulative+=weight
+                if cumulative>=.5:
+                    median=value
+                    break
+            errors[name].append(abs(median-truth[name])/(PARAMETER_BOUNDS[name][1]-PARAMETER_BOUNDS[name][0]))
+    return {"method":"synthetic_importance_sampling_recovery_rank_check",
+            "replications":reps,"prior_candidates_per_replication":candidate_count,
+            "rank_fraction_summary":{name:{"mean":sum(v)/len(v),"values":v} for name,v in ranks.items()},
+            "normalized_median_absolute_error":{name:sum(v)/len(v) for name,v in errors.items()},
+            "importance_sampling_ess":{"mean":sum(importance_ess)/len(importance_ess),"per_replication":importance_ess},
+            "synthetic_observation_noise":"independent Gaussian SD = 3% of absolute model output (minimum 0.001 output units)",
+            "warnings":["Preliminary SBC-style rank check using finite prior importance sampling, not formal simulation-based calibration.",
+                        "Low importance-sampling ESS indicates posterior approximation degeneracy; increase candidate count or use a validated sampler.",
+                        "Data are generated and analyzed with the same forward model; this is not independent physiological validation.",
+                        "Short simulation horizon and selected observables limit conclusions about parameter recovery."]}
+
 @app.post("/api/v1/mcmc")
 def posterior_mcmc(request: GlobalAnalysisRequest):
     """Independent-chain Random-Walk Metropolis with exploratory convergence diagnostics."""
