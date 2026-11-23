@@ -260,3 +260,21 @@ A malha de superfície é procedural e paramétrica, não derivada de TC/RM, atl
 
 
 A cena tridimensional requer WebGL e carrega Three.js 0.180.0 por CDN (jsDelivr). Se WebGL estiver indisponível, os controles e resultados do simulador compartimental permanecem independentes da visualização 3D. A implementação depende de conexão externa para carregar a biblioteca visual.
+
+
+## 20. Dinâmica transitória dos territórios esplênicos — v0.8.0
+
+A extensão substitui a partição puramente algébrica por três compartimentos vasculares em paralelo, cada um com resistência de saída e complacência própria (modelo Windkessel de um compartimento). O fluxo arterial esplênico agregado é distribuído igualmente entre os três territórios como hipótese inicial; as resistências relativas modificam a drenagem venosa e a pressão armazenada em cada compartimento.
+
+Para o território $i$:
+
+$$
+C_i\frac{dP_i}{dt}=Q_{in,i}-Q_{out,i},\qquad
+Q_{out,i}=\max\left(0,\frac{P_i-P_v}{R_0R_i^*}\right)
+$$
+
+com $Q_{in,i}=Q_{spl}/3$, $P_v=5$ mmHg, $R_0=5/0,052$ mmHg/(L/min), e $C_i=0,02$ L/mmHg. Os parâmetros $R_i^*$ são adimensionais, configuráveis entre 0,5 e 2,0. Os valores de $R_0$ e $C_i$ são escolhidos para manter o equilíbrio ilustrativo de 10 mmHg no cenário basal; não são estimativas fisiológicas.
+
+A soma das entradas territoriais é igual ao fluxo arterial esplênico. A soma das saídas venosas territoriais passa a compor o retorno portal, evitando contar o fluxo arterial esplênico como se fosse drenagem venosa instantânea. A diferença instantânea entre entrada e saída representa armazenamento/liberação de volume no compartimento complacente.
+
+A integração usa Euler explícito com o mesmo passo temporal do modelo global. A estabilidade e convergência devem ser verificadas em refinamentos de passo, especialmente nos extremos de resistência e complacência. O modelo não representa anatomia segmentar real, vasos individuais, pressão transmural, autorregulação, fluxo pulsátil ou microcirculação. Trata-se de uma extensão exploratória de ordem reduzida, sem aplicação clínica.
