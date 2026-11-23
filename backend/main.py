@@ -1,5 +1,5 @@
-import math
 """SPLEEN reference API v0.6.0. Experimental coupled ODE model; not clinically validated."""
+import math
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
