@@ -27,7 +27,7 @@ test("regional delivery classes are descriptive and ordered", () => {
 
 test("oxygen field is closest to its regional value at the territory center", () => {
   const regions = calculateTerritoryOxygen([{arterialInflow:.052},{arterialInflow:.026},{arterialInflow:.013}]);
-  const value = sampleOxygenField(centers[0], regions, centers);
+  const value = sampleOxygenField(centers[0], regions, centers, {sigma:0.1});
   assert.ok(Math.abs(value - regions[0].relativeOxygenDelivery) < 0.03);
 });
 
