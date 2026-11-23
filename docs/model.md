@@ -205,3 +205,16 @@ Os indicadores permanecem derivados de variáveis do modelo. APP = PAM − PIA �
 5. **Oxigenação hepática:** explicitar conteúdo arterial de oxigênio, componente arterial hepático, fluxo portal e limites de estimar entrega sem consumo/extração tecidual.
 
 A atualização adiciona transparência e testes de invariantes; não modifica ainda a estrutura fisiológica do sistema de EDOs. Mudanças nos compartimentos ou nos mecanismos serão feitas após decisão clínica e revisão de dimensionalidade, conservação e estabilidade.
+
+
+## 17. Compartimento de drenagem venosa gástrica
+
+O fluxo arterial gástrico permanece como um dos quatro compartimentos regionais. A entrada portal passa a incluir uma fração configurável desse fluxo:
+
+Q_portal,in = f_g Q_stomach + Q_intestine + Q_spleen + Q_pancreas
+
+A parcela complementar (1 - f_g) Q_stomach é registrada como retorno venoso sistêmico simplificado e não é acoplada a um compartimento sistêmico explícito. O controle de interface permite variar f_g entre 0 e 1; o valor inicial de 0,90 é uma hipótese computacional ilustrativa, não um valor anatômico ou fisiológico universal.
+
+Para manter o estado basal inicial em equilíbrio quando f_g=0,90, a resistência hepática de referência é recalibrada para R_h = 5 / (0,984 + 0,90 × 0,216) mmHg/(L/min), de modo que a drenagem portal calculada no basal corresponda ao fluxo portal de entrada. Essa escolha é apenas uma condição de equilíbrio do protótipo, não uma medida fisiológica de resistência.
+
+A fração portal gástrica deve ser revisada com anatomia e cirurgia: a drenagem venosa gástrica possui tributárias portais predominantes e conexões sistêmicas variáveis. A simplificação atual não modela veias gástricas individuais, anastomoses gastroesofágicas, tributárias gastroepiplóicas/curtas, nem variações anatômicas ou alterações por hipertensão portal.
