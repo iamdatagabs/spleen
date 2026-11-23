@@ -38,7 +38,7 @@ The Windows workflow tests the Python backend, packages it as a sidecar executab
     cd desktop
     npm install
     python -m pip install -r ../backend/requirements.txt pyinstaller
-    pyinstaller --clean --onefile --name spleen-api --distpath src-tauri/target/release backend_entry.py
+    pyinstaller --clean --onefile --collect-all uvicorn --collect-all fastapi --collect-all pydantic --name spleen-api --distpath src-tauri/target/release backend_entry.py
     Copy-Item src-tauri/target/release/spleen-api.exe src-tauri/spleen-api.exe
     npm run build
 
