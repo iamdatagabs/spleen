@@ -163,3 +163,29 @@ def test_synthetic_recovery_returns_rank_and_importance_diagnostics():
         "portal_compliance", "hepatic_resistance", "portal_feedback_gain", "tau_scale"
     }
     assert result["importance_sampling_ess"]["mean"] > 0
+
+
+def test_total_flow_equals_sum_of_regional_arterial_flows():
+    result = final_state(Parameters(duration_min=8, dt_min=0.025))
+    regional_sum = sum(result["regional_flow_l_min"].values())
+    assert math.isclose(result["total_flow_l_min"], regional_sum, rel_tol=0, abs_tol=1e-6)
+
+
+def test_portal_inflow_matches_current_modelled_draining_compartments():
+    result = final_state(Parameters(duration_min=8, dt_min=0.025))
+    regional = result["regional_flow_l_min"]
+    expected = regional["intestine"] + regional["spleen"] + regional["pancreas"]
+    assert math.isclose(result["portal_inflow_l_min"], expected, rel_tol=0, abs_tol=1e-6)
+
+
+def test_hepatic_outflow_obeys_pressure_resistance_relation():
+    params = Parameters(duration_min=20, dt_min=0.025)
+    result = final_state(params)
+    expected = max(0.0, (result["portal_pressure_mmhg"] - 5.0) / params.hepatic_resistance)
+    assert math.isclose(result["hepatic_portal_outflow_l_min"], expected, rel_tol=0, abs_tol=1e-6)
+
+
+def test_hepatic_oxygen_delivery_uses_flow_and_content_conversion():
+    result = final_state(Parameters(duration_min=12, dt_min=0.025))
+    expected = (result["hepatic_portal_outflow_l_min"] + result["hepatic_arterial_flow_l_min"]) * 185.0
+    assert math.isclose(result["hepatic_oxygen_delivery_ml_min"], expected, rel_tol=0, abs_tol=1e-5)
