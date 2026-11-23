@@ -8,6 +8,7 @@
   const save = $("saveExperiment");
   if (!status || !dot || !list || !save) return;
   let apiReady = false;
+  save.disabled = true;
   const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({
     "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
   })[char]);
@@ -52,8 +53,9 @@
   async function checkHealth() {
     try {
       await request("/health");
+      const wasReady = apiReady;
       setStatus(true, "API local · conectada");
-      await refreshExperiments();
+      if (!wasReady) await refreshExperiments();
     } catch {
       setStatus(false, "API local · indisponível");
     }
