@@ -46,7 +46,7 @@
 \title{\Huge\bfseries Fundamentação matemática da perfusão esplâncnica\\[0.4em]
 \Large Fisiologia, equações diferenciais e modelagem computacional aplicada ao SPLEEN}
 \author{Material didático de apoio ao projeto SPLEEN}
-\date{Versão 1.0 — novembro de 2026}
+\date{Versão 2.0 — novembro de 2026}
 
 \begin{document}
 \frontmatter
@@ -464,34 +464,344 @@ Uma simulação deve ser lida como resposta condicional às hipóteses inseridas
 \section{Perguntas que o modelo atual não responde}
 O modelo atual não determina perfusão capilar real, oxigenação celular, necrose, isquemia individual, risco cirúrgico ou desfecho clínico. Também não prediz a resposta de um paciente específico. Essas perguntas exigiriam definição de desfechos, dados observacionais, medidas de referência, calibração, validação externa e avaliação ética e regulatória apropriada.
 
-\chapter{Roteiro de estudo e desenvolvimento}
+\chapter{Trilha I — Hemodinâmica aplicada à cirurgia do aparelho digestivo}
 
-\section{Sequência recomendada}
+\section{Pressão, fluxo e resistência no campo cirúrgico}
+Considere um cenário didático de cirurgia do aparelho digestivo (CAD), como uma gastrectomia laparoscópica. A pressão de pneumoperitônio, a pressão venosa, o estado volêmico e a resistência dos leitos vasculares podem modificar o gradiente efetivo de perfusão. Para um leito regional agregado, a aproximação resistiva é:
+\begin{equation}
+  Q_{\mathrm{est}}=\frac{P_{\mathrm{art,ef}}-P_{\mathrm{ven,ef}}}{R_{\mathrm{est}}}.
+\end{equation}
+Se, apenas para ilustração matemática, o gradiente efetivo for \SI{60}{mmHg} e a resistência equivalente for \SI{75}{mmHg.min.L^{-1}}, então:
+\[
+Q_{\mathrm{est}}=\frac{60}{75}=0{,}80\ \mathrm{L.min^{-1}}.
+\]
+O resultado não é uma estimativa clínica do fluxo gástrico: os números foram escolhidos para demonstrar a operação da equação. Na prática, o gradiente e a resistência precisariam ser medidos ou estimados por método validado e compatível com a escala do modelo.
+
+\section{Complacência: por que a pressão não responde instantaneamente}
+Durante uma intervenção abdominal, a variação do volume vascular efetivo e a diferença entre entrada e saída podem modificar a pressão portal. Para uma complacência constante:
+\begin{equation}
+  C_p=\frac{\dd V_p}{\dd P_p}
+  \quad\Longrightarrow\quad
+  \Delta P_p\approx\frac{\Delta V_p}{C_p}.
+\end{equation}
+Em um exemplo puramente didático, um acúmulo efetivo de \SI{0.02}{L} em um compartimento com complacência hipotética de \SI{0.08}{L.mmHg^{-1}} corresponderia a:
+\[
+\Delta P_p\approx\frac{0{,}02}{0{,}08}=0{,}25\ \mathrm{mmHg}.
+\]
+A aproximação pressupõe complacência constante e um compartimento concentrado. A complacência portal real pode ser não linear e depende do estado vascular e hepático.
+
+\section{Autorregulação e limites de uma relação linear}
+A autorregulação descreve mecanismos que tendem a amortecer alterações de fluxo diante de mudanças de pressão de perfusão, dentro de uma faixa fisiológica e com diferenças entre órgãos. Na CAD, não se deve assumir que estômago, intestino, baço e pâncreas respondam de modo idêntico a uma mesma alteração hemodinâmica.
+
+Uma função de autorregulação mais realista poderia ser não linear e limitada:
+\begin{equation}
+Q_i^*=Q_{i,\min}+
+(Q_{i,\max}-Q_{i,\min})\,g_i(\Delta P_i),
+\qquad 0\leq g_i\leq1.
+\end{equation}
+A função $g_i$ teria de ser definida com dados apropriados para cada território e contexto cirúrgico. O SPLEEN atual não implementa uma curva autorregulatória validada; sua função de fluxo-alvo é fenomenológica.
+
+\section{Exercício contextualizado}
+Em uma gastrectomia, imagine que o modelo recebe uma redução hipotética do gradiente de perfusão e prevê queda do fluxo-alvo intestinal. Antes de interpretar o resultado, responda:
 \begin{enumerate}
-  \item Revisar hemodinâmica: pressão, fluxo, resistência, complacência e autorregulação.
-  \item Dominar balanços de conservação e análise dimensional.
-  \item Resolver analiticamente a EDO de primeira ordem e interpretar constantes de tempo.
-  \item Implementar e verificar Euler explícito e um método de ordem superior.
-  \item Testar equilíbrio, positividade, conservação e convergência temporal.
-  \item Avaliar sensibilidade e identificabilidade antes de estimar parâmetros.
-  \item Definir quais dados fisiológicos poderiam calibrar cada parâmetro.
-  \item Somente então especificar um módulo espacial com EDP, geometria e condições de contorno.
+  \item A queda foi produzida por menor pressão arterial efetiva, maior pressão a jusante ou aumento de resistência?
+  \item A alteração é igual em todos os leitos ou foi introduzida uma redistribuição regional?
+  \item A resposta representa autorregulação medida ou apenas uma função assumida pelo modelo?
+  \item Quais medidas intraoperatórias e de pesquisa seriam necessárias para testar a hipótese?
 \end{enumerate}
 
-\section{Dados que seriam úteis para evolução}
-A escolha de dados depende do objetivo e da disponibilidade real. Em termos gerais, podem ser relevantes: pressão arterial e venosa com marcação temporal; pressão intra-abdominal ou pneumoperitônio; débito cardíaco e variáveis de retorno venoso; medidas de fluxo regional por método validado; parâmetros laboratoriais necessários ao conteúdo arterial de oxigênio; e medidas de perfusão ou oxigenação tecidual com método e localização documentados.
+\chapter{Trilha II — Balanços de conservação e análise dimensional na circulação portal}
 
-Cada variável deve ter unidade, método de aquisição, frequência temporal, população, contexto anestésico-cirúrgico, incerteza de medição e critérios de qualidade. A disponibilidade de uma variável no prontuário não garante que ela seja adequada para calibração.
+\section{Balanço de vazão no sistema porta}
+Em uma representação reduzida de CAD, os fluxos venosos agregados dos territórios intestinal, esplênico e pancreático alimentam o compartimento portal:
+\begin{equation}
+  \Qportin=Q_{\mathrm{int}}+Q_{\mathrm{baço}}+Q_{\mathrm{pâncreas}}.
+\end{equation}
+A variação de pressão portal depende do desequilíbrio entre essa entrada e a saída hepática:
+\begin{equation}
+  C_p\diff{P_p}{t}=\Qportin-\Qportout.
+\end{equation}
+Considere valores hipotéticos para um instante de uma simulação: $Q_{\mathrm{int}}=0{,}70$, $Q_{\mathrm{baço}}=0{,}12$ e $Q_{\mathrm{pâncreas}}=0{,}08$ L/min. A entrada agregada é:
+\[
+\Qportin=0{,}70+0{,}12+0{,}08=0{,}90\ \mathrm{L/min}.
+\]
+Se a saída modelada nesse mesmo instante for \SI{0.82}{L.min^{-1}}, o acúmulo efetivo é \SI{0.08}{L.min^{-1}}. Com $C_p=\SI{0.08}{L.mmHg^{-1}}$, a taxa instantânea prevista para a pressão é:
+\[
+\diff{P_p}{t}=\frac{0{,}08}{0{,}08}
+=1{,}0\ \mathrm{mmHg/min}.
+\]
+Trata-se de um exemplo numérico inventado para demonstrar o balanço, não de uma faixa esperada durante uma operação.
 
-\section{Boas práticas científicas}
+\section{Análise dimensional passo a passo}
+As unidades precisam fechar em cada termo. Para a equação portal:
+\[
+[C_p]=\mathrm{L/mmHg},\qquad
+[\diff{P_p}{t}]=\mathrm{mmHg/min}.
+\]
+Logo:
+\[
+[C_p\diff{P_p}{t}]
+=\frac{\mathrm{L}}{\mathrm{mmHg}}
+ \frac{\mathrm{mmHg}}{\mathrm{min}}
+=\mathrm{L/min}.
+\]
+A expressão tem a mesma unidade de $\Qportin-\Qportout$. Se um código somar pressão a fluxo, por exemplo, existe erro dimensional que precisa ser corrigido antes de qualquer interpretação fisiológica.
+
+\section{Oferta de oxigênio: checagem de unidades}
+Para uma saída hepática agregada, a entrega de oxigênio pode ser escrita:
+\begin{equation}
+  \Do_{\mathrm{hep}}=Q_{\mathrm{hep}}\,C_{aO_2}.
+\end{equation}
+Se o fluxo for expresso em L/min, o conteúdo precisa estar em mL/L. Um conteúdo de \SI{18.5}{mL/dL} equivale a \SI{185}{mL/L}; multiplicar diretamente por 18,5 sem converter unidades produziria um erro de fator dez. O exemplo serve para a auditoria de unidades de um indicador hepático, não para inferir oxigenação tecidual durante cirurgia.
+
+\chapter{Trilha III — Solução analítica da EDO de primeira ordem em um leito cirúrgico}
+
+\section{Construção da equação}
+Considere o fluxo arterial agregado de um território intestinal durante uma etapa hipotética de uma cirurgia digestiva. O modelo supõe que o fluxo se aproxima gradualmente de um alvo $Q_{\mathrm{int}}^*$:
+\begin{equation}
+  \diff{Q_{\mathrm{int}}}{t}
+  =\frac{Q_{\mathrm{int}}^*-Q_{\mathrm{int}}}{\tau_{\mathrm{int}}}.
+  \label{eq:ode-intestine}
+\end{equation}
+Assuma alvo constante durante o intervalo, $Q_{\mathrm{int}}(0)=0{,}60$ L/min, alvo hipotético $Q_{\mathrm{int}}^*=0{,}90$ L/min e $\tau_{\mathrm{int}}=2$ min. A solução é:
+\begin{equation}
+Q_{\mathrm{int}}(t)=0{,}90+(0{,}60-0{,}90)e^{-t/2}.
+\end{equation}
+Após dois minutos:
+\[
+Q_{\mathrm{int}}(2)=0{,}90-0{,}30e^{-1}
+\approx0{,}790\ \mathrm{L/min}.
+\]
+Após cinco constantes de tempo, a diferença para o alvo é pequena, pois $e^{-5}\approx0{,}0067$. Essa propriedade descreve a dinâmica matemática escolhida; não prova que a resposta vascular intestinal real tenha constante de tempo de dois minutos.
+
+\section{Interpretação fisiológica cautelosa}
+A constante $\tau_{\mathrm{int}}$ controla a velocidade de acomodação do estado no modelo. Uma mudança de pressão de pneumoperitônio ou de pressão arterial poderia alterar o alvo, mas o modelo não identifica automaticamente qual mecanismo fisiológico causou essa alteração. A interpretação exige separar:
 \begin{itemize}
-  \item Registrar a origem de cada equação e parâmetro.
-  \item Distinguir dado medido, parâmetro estimado e valor ilustrativo.
-  \item Versionar código, dados, hipóteses e resultados.
-  \item Separar desenvolvimento, calibração e validação.
-  \item Evitar linguagem causal ou clínica além do que o desenho permite.
-  \item Documentar falhas, resultados negativos e limitações.
+  \item mudança do alvo, associada às entradas hemodinâmicas;
+  \item atraso dinâmico, associado à constante de tempo;
+  \item redistribuição entre territórios, associada aos pesos regionais;
+  \item retroalimentação portal, associada ao acoplamento do sistema.
 \end{itemize}
+
+\section{Exercício de comparação}
+Repita o cálculo com $\tau_{\mathrm{int}}=1$ min e $\tau_{\mathrm{int}}=4$ min, mantendo o mesmo fluxo inicial e o mesmo alvo. Compare os valores após dois minutos. A diferença isola o efeito do parâmetro temporal no modelo. Não interprete a comparação como efeito de uma intervenção real sem dados que sustentem a correspondência entre $\tau$ e a fisiologia.
+
+\chapter{Trilha IV — Implementação numérica: Euler explícito e Runge--Kutta}
+
+\section{Euler explícito aplicado ao fluxo intestinal}
+Para $\diff{Q}{t}=f(t,Q)$, Euler explícito calcula:
+\begin{equation}
+Q_{n+1}=Q_n+\Delta t\,f(t_n,Q_n).
+\end{equation}
+Usando a EDO intestinal anterior, $Q_0=0{,}60$ L/min, $Q^*=0{,}90$ L/min, $\tau=2$ min e $\Delta t=0{,}5$ min:
+\[
+Q_1=0{,}60+0{,}5\frac{0{,}90-0{,}60}{2}
+=0{,}675\ \mathrm{L/min}.
+\]
+No passo seguinte:
+\[
+Q_2=0{,}675+0{,}5\frac{0{,}90-0{,}675}{2}
+=0{,}73125\ \mathrm{L/min}.
+\]
+O resultado é uma aproximação discreta da trajetória contínua. Reduzir $\Delta t$ tende a reduzir o erro de discretização, desde que a implementação esteja correta.
+
+\section{Runge--Kutta de quarta ordem}
+Para um sistema $\diff{\bm{x}}{t}=\bm{f}(t,\bm{x})$, o método RK4 calcula quatro inclinações:
+\begin{align*}
+\bm{k}_1&=\bm{f}(t_n,\bm{x}_n),\\
+\bm{k}_2&=\bm{f}(t_n+\Delta t/2,\bm{x}_n+\Delta t\bm{k}_1/2),\\
+\bm{k}_3&=\bm{f}(t_n+\Delta t/2,\bm{x}_n+\Delta t\bm{k}_2/2),\\
+\bm{k}_4&=\bm{f}(t_n+\Delta t,\bm{x}_n+\Delta t\bm{k}_3),\\
+\bm{x}_{n+1}&=\bm{x}_n+\frac{\Delta t}{6}
+(\bm{k}_1+2\bm{k}_2+2\bm{k}_3+\bm{k}_4).
+\end{align*}
+No SPLEEN, $\bm{x}$ contém os fluxos gástrico, intestinal, esplênico e pancreático, além da pressão portal. Cada avaliação de $\bm f$ precisa recalcular os fluxos-alvo, a entrada portal e a saída portal usando o estado intermediário correspondente. Não é correto aplicar RK4 a cada variável de forma isolada se isso quebrar o acoplamento.
+
+\section{Comparação dos métodos}
+Euler é simples e útil para protótipos e testes; RK4 geralmente oferece maior precisão por passo em sistemas suaves, ao custo de mais avaliações da função. A escolha deve ser feita por estudo de convergência, estabilidade, custo computacional e comportamento diante de limites não suaves, como operadores de máximo e truncamentos.
+
+\section{Exercício computacional contextualizado}
+Simule uma alteração hipotética do alvo intestinal durante uma etapa de gastrectomia usando Euler e RK4. Compare os fluxos previstos no mesmo tempo final para $\Delta t$, $\Delta t/2$ e $\Delta t/4$. Registre erro relativo entre métodos e tempo de execução. O objetivo é verificar a integração do modelo, não comparar técnicas cirúrgicas nem sugerir parâmetros de manejo.
+
+\chapter{Trilha V — Testes de equilíbrio, positividade, conservação e convergência}
+
+\section{Equilíbrio portal}
+No estado estacionário, a pressão portal não varia:
+\begin{equation}
+\diff{P_p}{t}=0
+\quad\Longrightarrow\quad
+\Qportin=\Qportout.
+\end{equation}
+Para o modelo resistivo:
+\[
+P_p=P_{\mathrm{hv}}+R_h\Qportin,
+\]
+desde que o gradiente de saída seja positivo. Essa expressão permite calcular o equilíbrio algébrico esperado para um conjunto de parâmetros e compará-lo com a simulação. A comparação é um teste de consistência do código, não uma afirmação sobre pressão portal real de um paciente.
+
+\section{Positividade}
+Fluxos sanguíneos agregados não devem se tornar negativos. Para cada leito:
+\[
+Q_i(t)\geq0.
+\]
+Um teste deve explorar cenários extremos de entradas do modelo, verificar se os estados permanecem no domínio definido e registrar se a positividade decorre da própria dinâmica ou de truncamento numérico. Um truncamento pode mascarar um passo temporal excessivo.
+
+\section{Conservação}
+O balanço portal deve ser auditado a cada instante:
+\[
+r_{\mathrm{bal}}(t)=
+C_p\diff{P_p}{t}-(\Qportin-\Qportout).
+\]
+Em uma implementação correta, o resíduo deve ser compatível com a precisão numérica e com a discretização utilizada. Para um esquema explícito, compare também o volume acumulado calculado pela integração do desequilíbrio de vazão com a variação de volume inferida pela complacência.
+
+\section{Convergência temporal}
+Execute a mesma simulação de um cenário cirúrgico sintético com passos $\Delta t$, $\Delta t/2$ e $\Delta t/4$. Para uma métrica final $y$, calcule:
+\[
+\varepsilon_{\Delta t}=
+\frac{|y_{\Delta t}-y_{\Delta t/2}|}
+{\max(|y_{\Delta t/2}|,\epsilon)}.
+\]
+O parâmetro $\epsilon$ evita divisão por zero. A redução do erro com refinamento do passo dá evidência de convergência numérica. Se a solução divergir ou oscilar, investigue estabilidade, descontinuidades, implementação e escala dos parâmetros.
+
+\section{Plano mínimo de testes para o SPLEEN}
+\begin{enumerate}
+  \item Verificar o equilíbrio basal dos fluxos e da pressão portal.
+  \item Testar fluxos não negativos nos cenários de maior estresse definidos para o modelo.
+  \item Verificar se entrada portal e saída portal se igualam no equilíbrio.
+  \item Comparar Euler e RK4 em cenários e tempos finais idênticos.
+  \item Refinar o passo temporal e registrar erros de cada saída.
+  \item Repetir os testes após qualquer alteração nas equações ou nos parâmetros.
+\end{enumerate}
+
+\chapter{Trilha VI — Sensibilidade e identificabilidade antes da estimação}
+
+\section{Sensibilidade local de um desfecho do modelo}
+Suponha que a saída de interesse seja a pressão portal prevista ao final de uma simulação de esofagectomia hipotética, e que o parâmetro estudado seja a resistência efetiva de drenagem $R_h$. A sensibilidade local é:
+\begin{equation}
+S_{P_p,R_h}=\pder{P_p}{R_h}.
+\end{equation}
+Uma aproximação por diferenças finitas centrais é:
+\begin{equation}
+S_{P_p,R_h}\approx
+\frac{P_p(R_h+h)-P_p(R_h-h)}{2h}.
+\end{equation}
+O valor de $h$ deve ser pequeno o suficiente para aproximar a derivada, mas não tão pequeno que erros numéricos dominem. A análise é condicionada ao cenário, horizonte temporal, saídas e versão do modelo.
+
+\section{Elasticidade e comparação entre parâmetros}
+A elasticidade:
+\begin{equation}
+E_{y,p}=\pder{y}{p}\frac{p}{y}
+\end{equation}
+permite comparar sensibilidades relativas de parâmetros com unidades diferentes. Por exemplo, pode-se comparar a resposta percentual da pressão portal à resistência $R_h$ com a resposta à complacência $C_p$. Elasticidade alta indica dependência local elevada naquele ponto; não prova que o parâmetro seja estimável a partir de dados.
+
+\section{Identificabilidade: parâmetros que produzem efeitos parecidos}
+Considere dois parâmetros do modelo, resistência de drenagem $R_h$ e complacência portal $C_p$. Em certos horizontes e com apenas uma medida final de pressão portal, seus efeitos podem ser difíceis de separar: um altera a relação pressão--fluxo em regime estacionário, enquanto o outro afeta a dinâmica temporal. Uma série temporal suficientemente informativa pode ajudar a distingui-los, mas isso precisa ser demonstrado por análise formal e dados adequados.
+
+Para múltiplas saídas $y_k$ e parâmetros $p_j$, a matriz:
+\[
+J_{kj}=\pder{y_k}{p_j}
+\]
+resume a resposta local. Colunas quase paralelas sugerem que dois parâmetros modificam as saídas de maneira semelhante. O posto numérico é uma triagem; não prova identificabilidade estrutural global.
+
+\section{Desenho de observações na CAD}
+Antes de estimar parâmetros, defina quais saídas seriam observadas, em que momentos e com que precisão. Uma única pressão portal ao final de uma operação pode não informar a constante de tempo regional. Uma série temporal de fluxos regionais e pressão portal, quando disponível por métodos apropriados, pode conter informação complementar. O desenho deve ser compatível com a pergunta, viabilidade, ética e qualidade metrológica.
+
+\chapter{Trilha VII — Dados fisiológicos para calibração: parâmetro, medida e escala}
+
+\section{Mapa entre parâmetros e dados}
+A calibração não deve começar pela busca indiscriminada de dados. Primeiro, associe cada parâmetro a um mecanismo, unidade, observação potencial e limitação.
+
+\begin{longtable}{p{0.17\textwidth}p{0.22\textwidth}p{0.25\textwidth}p{0.26\textwidth}}
+\toprule
+\textbf{Parâmetro} & \textbf{Significado no modelo} & \textbf{Dado potencial na CAD} & \textbf{Limitação principal}\\
+\midrule
+$R_h$ & Resistência efetiva de drenagem portal-hepática & Pressões e fluxos portal/hepático obtidos por método validado & Não é diretamente identificável por uma pressão isolada\\
+$C_p$ & Complacência efetiva do compartimento portal & Relação temporal entre variação de volume/fluxo e pressão & Pode variar com estado vascular e doença hepática\\
+$\tau_i$ & Constante de tempo do leito regional $i$ & Série temporal de fluxo regional após mudança hemodinâmica observável & Requer resolução temporal e medida regional confiável\\
+$\gamma_p$ & Ganho de retroalimentação portal fenomenológico & Resposta regional associada a variações de pressão portal & Pode confundir-se com resistência e outros mecanismos\\
+$w_i$ & Peso relativo de distribuição regional & Medidas comparáveis de fluxo nos territórios representados & A agregação anatômica pode não corresponder à medida disponível\\
+\bottomrule
+\end{longtable}
+
+\section{Exemplo de desenho de estudo}
+Uma investigação observacional em pacientes submetidos a procedimento digestivo alto poderia, mediante aprovação ética e viabilidade, organizar medidas temporais já previstas no cuidado ou obtidas por protocolo de pesquisa não intervencionista. O desenho precisaria definir população, procedimento, tempos de aquisição, variáveis hemodinâmicas, método de medida de fluxo, covariáveis, critérios de exclusão e plano de análise. A apostila não propõe adicionar medidas invasivas ou alterar a assistência.
+
+\section{Dados de oxigênio}
+Para calibrar um indicador de oferta de oxigênio, seriam necessários conteúdo arterial ou seus componentes (hemoglobina, saturação e pressão parcial), além de fluxo no território relevante. Para estudar extração ou consumo, seriam necessários dados adicionais, como conteúdo venoso ou medidas metabólicas apropriadas. Fluxo estimado multiplicado por um conteúdo fixo não equivale a uma medida de oxigenação tecidual.
+
+\section{Separação entre calibração e validação}
+Use um conjunto de dados para estimar parâmetros e outro, independente, para testar previsões. Quando o tamanho amostral permitir, considere validação externa por centro, período ou população. Reutilizar as mesmas observações para ajustar e declarar desempenho tende a produzir uma avaliação otimista.
+
+\chapter{Trilha VIII — Extensão espacial: EDP, geometria e condições de contorno}
+
+\section{Da circulação agregada à perfusão regional no espaço}
+Uma EDP torna-se pertinente quando a pergunta da CAD exige representar gradientes dentro de um órgão ou tecido. Por exemplo, pode-se investigar conceitualmente como oxigênio é transportado a partir de vasos de entrada para um domínio tecidual de interesse. A EDO compartimental não identifica a localização espacial de regiões com maior ou menor concentração.
+
+\section{Equação de transporte e consumo}
+Uma forma genérica é:
+\begin{equation}
+\pder{C}{t}+\nabla\cdot(\bm v C)
+=\nabla\cdot(D\nabla C)-R(C,\bm x,t).
+\end{equation}
+Para um domínio de tecido associado a uma anastomose digestiva, $C$ poderia representar uma concentração definida de oxigênio no meio escolhido; $\bm v$ a velocidade efetiva do fluido; $D$ a difusividade ou dispersão efetiva; e $R$ o consumo metabólico. A escolha do meio (sangue, plasma, interstício ou tecido) altera a interpretação e as unidades. Não se deve misturar concentração vascular e tecidual em uma única variável sem um modelo de troca.
+
+\section{Geometria e domínio}
+O domínio $\Omega$ precisa representar a região anatômica de interesse, por exemplo um segmento tecidual delimitado em torno de uma região de anastomose. A geometria pode vir de imagem médica ou de uma idealização geométrica explicitamente justificada. A segmentação, escala espacial, espessura, orientação e simplificações devem ser documentadas. Uma geometria ilustrativa não equivale à anatomia de um paciente.
+
+\section{Condições iniciais e de contorno}
+A EDP requer uma condição inicial:
+\[
+C(\bm x,0)=C_0(\bm x),\qquad \bm x\in\Omega.
+\]
+Na superfície $\partial\Omega$, uma condição de fluxo poderia ser escrita:
+\[
+-\bm n\cdot D\nabla C=j_{\mathrm{in}}(\bm x,t),
+\]
+ou uma concentração poderia ser prescrita em uma interface vascular:
+\[
+C(\bm x,t)=C_{\mathrm{vasc}}(t),\qquad \bm x\in\Gamma_{\mathrm{vasc}}.
+\]
+Essas são opções matemáticas, não condições já determinadas para o tecido digestivo. Devem ser escolhidas conforme o mecanismo de troca e os dados disponíveis.
+
+\section{Discretização, malha e convergência}
+O domínio pode ser discretizado por volumes finitos ou elementos finitos, conforme a geometria e a necessidade de conservação. Uma malha mais fina aumenta o custo e pode resolver gradientes mais curtos, mas não corrige condições de contorno erradas nem parâmetros sem suporte empírico. A solução deve ser testada com refinamento sistemático de malha e passo temporal, além de balanços de massa/oxigênio.
+
+\section{Acoplamento com o SPLEEN}
+Uma arquitetura híbrida poderia usar o SPLEEN como modelo sistêmico de fluxos e pressões, fornecendo condições de entrada para um módulo espacial localizado. O módulo espacial devolveria grandezas agregadas compatíveis com os balanços, como fluxo total ou consumo integrado. O acoplamento deve preservar unidades e conservação; não se deve alimentar a EDP com saídas que o modelo compartimental não consegue sustentar.
+
+\chapter{Dados, documentação e boas práticas de pesquisa}
+
+\section{Ficha mínima de cada variável}
+Para cada variável observada, registrar:
+\begin{itemize}
+  \item definição operacional e unidade;
+  \item método, equipamento e local anatômico de aquisição;
+  \item frequência temporal e sincronização;
+  \item população, procedimento e contexto anestésico-cirúrgico;
+  \item incerteza de medida, dados ausentes e critérios de qualidade;
+  \item origem, autorização, governança e versão do conjunto de dados.
+\end{itemize}
+
+\section{Princípios de desenvolvimento}
+\begin{enumerate}
+  \item Distinguir dado medido, parâmetro estimado e valor ilustrativo.
+  \item Registrar a origem e a justificativa de cada equação.
+  \item Versionar código, dados, hipóteses e resultados.
+  \item Separar verificação, calibração e validação.
+  \item Evitar inferências clínicas além do desenho e da evidência.
+  \item Documentar falhas, resultados negativos e limitações.
+\end{enumerate}
+
+\section{Checklist para avançar de uma etapa à seguinte}
+\begin{enumerate}
+  \item A formulação hemodinâmica tem mecanismo e unidades explicitados?
+  \item Os balanços fecham e os sinais estão interpretados corretamente?
+  \item A solução analítica de casos simples confere com a implementação?
+  \item O integrador numérico foi comparado com método independente?
+  \item Equilíbrio, positividade, conservação e convergência foram testados?
+  \item Os parâmetros relevantes são distinguíveis pelas observações propostas?
+  \item Há dados adequados, rastreáveis e eticamente acessíveis para calibração?
+  \item A extensão espacial tem geometria, condições iniciais e de contorno justificadas?
+\end{enumerate}
 
 \chapter*{Glossário}
 \addcontentsline{toc}{chapter}{Glossário}
