@@ -32,3 +32,22 @@
 .spatial-readouts span{display:block;color:var(--muted);font-size:9px}
 .spatial-readouts b{display:block;color:var(--teal);font-size:15px;margin-top:5px;font-variant-numeric:tabular-nums}
 @media(max-width:600px){.spleen-stage{height:300px}.spleen-3d{width:100%;height:255px}.spatial-readouts{gap:5px}.spatial-readouts>div{padding:8px}.spatial-readouts b{font-size:13px}}
+
+/* SPLEEN spatial hemodynamics v0.8 — Three.js surface and parallel territories */
+.spleen-stage{height:390px;perspective:none;position:relative;touch-action:pan-y}
+.spleen-3d{width:100%;height:330px;max-width:620px;margin:auto;position:relative;transform:none!important;animation:none!important;cursor:grab;touch-action:pan-y}
+.spleen-3d:active{cursor:grabbing}
+#spleen3dCanvas{display:block;width:100%;height:100%;outline:none}
+.spleen3d-fallback{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--muted);font-size:12px}
+.territory-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:14px 0 8px;color:#dceaf1;font-size:11px}
+.territory-heading small{color:var(--muted);font-size:9px}
+.territory-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.territory-controls label{padding:10px;background:#0b1925;border:1px solid var(--line);border-radius:7px;min-width:0}
+.territory-controls label>span{display:flex;justify-content:space-between;gap:4px;color:var(--muted);font-size:10px}
+.territory-controls label>span b{color:var(--gold)}
+.territory-controls input{width:100%;margin:9px 0 4px;accent-color:var(--teal)}
+.territory-controls label>small{display:block;color:var(--muted);font-size:9px}
+.territory-controls label>small strong{color:var(--teal);font-size:11px}
+@media(max-width:600px){.spleen-stage{height:300px}.spleen-3d{height:260px}.territory-controls{grid-template-columns:1fr}.territory-controls label{padding:8px}}
+
+.spleen3d-fallback[hidden]{display:none!important}.territory-subtitle{display:block;color:var(--muted);font-size:9px;margin:-5px 0 8px}

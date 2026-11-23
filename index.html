@@ -1,6 +1,6 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#08131f"><title>SPLEEN | Splanchnic Perfusion Lab</title><link rel="stylesheet" href="styles.css"></head><body>
 <header class="topbar"><a class="brand" href="#"><span class="brand-mark">S</span><span>SPLEEN<small>COMPUTATIONAL PHYSIOLOGY LAB</small></span></a><nav><a href="#simulator">Simulador</a><a href="#analysis">Análises</a><a href="#physiology">Fisiologia</a><a href="#model">Modelo</a><a href="docs/model.md">Documentação</a><a href="https://github.com/iamdatagabs/spleen" target="_blank" rel="noreferrer">GitHub ↗</a></nav></header>
-<main><section class="hero"><div class="eyebrow"><span class="pulse"></span> EXPERIMENTAL RESEARCH PROTOTYPE · v0.7.0</div><h1>Explore a <em>perfusão</em><br>esplâncnica.</h1><p>Simule como alterações hemodinâmicas perioperatórias podem modificar a distribuição regional do fluxo sanguíneo abdominal e a dinâmica portal-hepática.</p><div class="hero-tags"><span>ODE COMPARTIMENTAL</span><span>ACOPLAMENTO PORTAL</span><span>DIGESTIVE SURGERY</span></div></section>
+<main><section class="hero"><div class="eyebrow"><span class="pulse"></span> EXPERIMENTAL RESEARCH PROTOTYPE · v0.8.0</div><h1>Explore a <em>perfusão</em><br>esplâncnica.</h1><p>Simule como alterações hemodinâmicas perioperatórias podem modificar a distribuição regional do fluxo sanguíneo abdominal e a dinâmica portal-hepática.</p><div class="hero-tags"><span>ODE COMPARTIMENTAL</span><span>ACOPLAMENTO PORTAL</span><span>DIGESTIVE SURGERY</span></div></section>
 <section id="simulator" class="workspace"><aside class="panel controls"><div class="panel-head"><div><span class="section-kicker">01 / EXPERIMENTO</span><h2>Condições hemodinâmicas</h2></div><button id="reset" class="ghost">Restaurar ↺</button></div>
 <label class="control"><span>Pressão arterial média <b id="mapValue">85 mmHg</b></span><input id="map" type="range" min="45" max="120" value="85"><small>Pressão de perfusão sistêmica simplificada</small></label>
 <label class="control"><span>Pneumoperitônio <b id="pneuValue">12 mmHg</b></span><input id="pneu" type="range" min="0" max="20" value="12"><small>Pressão intra-abdominal aplicada ao cenário</small></label>
@@ -17,53 +17,25 @@
   <div class="analysis-intro"><span class="section-kicker">07 / PHYSIOLOGIA INTEGRADA</span><h2>Hemodinâmica, <em>anatomia e criticidade.</em></h2><p>Camada experimental acoplada às variáveis do simulador. Ajuste as condições no painel principal e execute a simulação para atualizar os indicadores.</p></div>
   <div class="physiology-grid">
     <article class="panel anatomy-panel">
-      <div class="panel-head"><div><span class="section-kicker">08 / REPRESENTAÇÃO ESPACIAL</span><h2>Baço · modelo 3D interativo</h2></div><span class="status">INTERATIVO</span></div>
+      <div class="panel-head"><div><span class="section-kicker">08 / REPRESENTAÇÃO ESPACIAL</span><h2>Baço · modelo 3D hemodinâmico</h2></div><span class="status">INTERATIVO</span></div>
       <div class="spleen-stage">
-        <div class="spleen-3d" id="spleen3d" role="img" aria-label="Modelo tridimensional esquemático do baço, com artéria esplênica ramificada, leito microvascular e veia esplênica. Arraste para girar.">
-          <svg class="spleen-model" viewBox="0 0 440 280" aria-hidden="true">
-            <defs>
-              <linearGradient id="splenicCapsule" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0aaa4"/><stop offset=".35" stop-color="#bd6572"/><stop offset=".72" stop-color="#853e59"/><stop offset="1" stop-color="#43283f"/></linearGradient>
-              <linearGradient id="splenicSide" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#54283e"/><stop offset="1" stop-color="#241c32"/></linearGradient>
-              <radialGradient id="splenicHighlight" cx=".32" cy=".24" r=".75"><stop stop-color="#ffd1c4" stop-opacity=".65"/><stop offset=".55" stop-color="#e58e91" stop-opacity=".12"/><stop offset="1" stop-color="#351d35" stop-opacity=".4"/></radialGradient>
-              <filter id="splenicShadow" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur stdDeviation="9"/></filter>
-              <pattern id="splenicTrabeculae" width="22" height="22" patternUnits="userSpaceOnUse"><path d="M0 11 Q11 2 22 11 M11 0 Q3 11 11 22" fill="none" stroke="#f4c0c0" stroke-opacity=".12" stroke-width="1"/></pattern>
-            </defs>
-            <g class="spleen-volume" transform="translate(0 7)">
-              <path class="spleen-shadow" d="M83 137 C48 91 75 42 135 28 C211 8 302 34 346 83 C371 111 351 130 329 143 C355 167 329 212 281 230 C211 253 128 222 94 184 C73 160 69 147 83 137Z" fill="#000" opacity=".48" filter="url(#splenicShadow)"/>
-              <path class="spleen-side" d="M83 137 C48 91 75 42 135 28 C211 8 302 34 346 83 C371 111 351 130 329 143 C355 167 329 212 281 230 C211 253 128 222 94 184 C73 160 69 147 83 137Z" fill="url(#splenicSide)" transform="translate(0 13)"/>
-              <path class="spleen-surface" d="M83 137 C48 91 75 42 135 28 C211 8 302 34 346 83 C371 111 351 130 329 143 C355 167 329 212 281 230 C211 253 128 222 94 184 C73 160 69 147 83 137Z" fill="url(#splenicCapsule)" stroke="#f2b5ad" stroke-opacity=".55" stroke-width="2"/>
-              <path d="M83 137 C48 91 75 42 135 28 C211 8 302 34 346 83 C371 111 351 130 329 143 C355 167 329 212 281 230 C211 253 128 222 94 184 C73 160 69 147 83 137Z" fill="url(#splenicHighlight)"/>
-              <path d="M96 134 C115 86 167 52 226 54 S315 91 323 132 M104 155 C148 205 236 224 292 186" fill="none" stroke="#f8c6bd" stroke-opacity=".22" stroke-width="2"/>
-              <path d="M112 66 Q190 25 270 62 T326 130 M102 170 Q178 227 268 204" fill="none" stroke="url(#splenicTrabeculae)" stroke-width="18" opacity=".8"/>
-              <g class="white-pulp" fill="#f6c9b5" opacity=".45"><circle cx="142" cy="88" r="5"/><circle cx="187" cy="61" r="4"/><circle cx="235" cy="84" r="5"/><circle cx="278" cy="111" r="4"/><circle cx="163" cy="151" r="4"/><circle cx="225" cy="174" r="5"/><circle cx="280" cy="183" r="4"/><circle cx="122" cy="125" r="3"/></g>
-            </g>
-            <g class="vascular-bed">
-              <g class="capillary-network" fill="none" stroke="#f3d4b9" stroke-width="1.5" stroke-linecap="round">
-                <path d="M153 105 C166 92 177 95 188 107 S210 122 222 108 S246 97 259 111 S279 126 291 115"/>
-                <path d="M153 105 C160 122 174 130 188 120 S214 133 224 151 S247 151 259 137 S278 128 291 115"/>
-                <path d="M188 107 C182 90 194 78 207 78 M222 108 C235 91 250 88 259 111 M224 151 C211 164 197 165 188 150"/>
-                <path d="M153 105 L143 122 M188 120 L179 139 M259 137 L270 154 M291 115 L305 103"/>
-              </g>
-              <g class="arterial-tree" fill="none" stroke="#ff796f" stroke-linecap="round" stroke-linejoin="round">
-                <path class="artery-main" d="M8 111 C43 111 66 115 93 126 S122 130 145 119" />
-                <path class="artery-branch" d="M111 126 C132 102 145 87 165 82 S190 82 207 91 M137 123 C157 145 173 158 194 165 M165 82 C183 62 203 57 220 60 M194 165 C216 178 235 180 253 168 M207 91 C227 75 245 74 260 87 M145 119 C158 112 170 110 183 115"/>
-                <path class="artery-branch" d="M183 115 C198 103 205 102 218 108 M194 165 C203 147 214 138 228 135"/>
-              </g>
-              <g class="venous-tree" fill="none" stroke="#78b5ff" stroke-linecap="round" stroke-linejoin="round">
-                <path class="vein-main" d="M432 208 C390 208 369 204 343 193 S311 179 285 181"/>
-                <path class="vein-branch" d="M343 193 C330 168 315 151 296 145 S272 145 255 155 M369 204 C350 220 328 226 308 218 M311 179 C300 160 289 143 274 132 M285 181 C264 193 248 193 232 184 M296 145 C292 125 280 111 263 105 M255 155 C239 147 225 145 213 151"/>
-              </g>
-              <g class="flow-particles" fill="#fff1d7"><circle r="3"><animateMotion dur="2.8s" repeatCount="indefinite" path="M8 111 C43 111 66 115 93 126 S122 130 145 119 C183 82 190 82 207 91"/></animateMotion></circle><circle r="2.5"><animateMotion dur="3.6s" repeatCount="indefinite" path="M432 208 C390 208 369 204 343 193 S311 179 285 181 C264 193 248 193 232 184"/></animateMotion></circle></g>
-            </g>
-            <g class="hilum-marker"><circle cx="337" cy="145" r="8" fill="#f3d7a4" stroke="#44283b" stroke-width="3"/><path d="M337 145 L369 123" stroke="#f3d7a4" stroke-width="1.5" stroke-dasharray="3 3"/></g>
-          </svg>
+        <div class="spleen-3d" id="spleen3d" role="img" aria-label="Modelo tridimensional paramétrico do baço, com territórios vasculares e árvore arterial e venosa. Arraste para girar.">
+          <canvas id="spleen3dCanvas" aria-label="Visualização 3D rotacionável do baço"></canvas>
+          <div id="spleen3dFallback" class="spleen3d-fallback" hidden>Visualização 3D indisponível neste navegador. O restante do simulador continua funcional.</div>
         </div>
         <div class="anatomy-label label-hilum">Hilo esplênico</div><div class="anatomy-label label-artery">Artéria esplênica</div><div class="anatomy-label label-vein">Veia esplênica</div>
       </div>
       <div class="spleen-view-controls"><span>Arraste o modelo para rotacionar</span><button type="button" id="spleenViewReset" class="ghost">↺ Restaurar vista</button></div>
       <div class="anatomy-legend"><span><i class="artery-dot"></i>Árvore arterial</span><span><i class="vein-dot"></i>Árvore venosa</span><span><i class="parenchyma-dot"></i>Parênquima</span><span><i class="micro-dot"></i>Rede microvascular</span></div>
       <div class="spatial-readouts"><div><span>Fluxo arterial esplênico</span><b id="spleen3dFlow">0,156 L/min</b></div><div><span>Índice relativo</span><b id="spleen3dPerfusion">100%</b></div><div><span>Pressão portal</span><b id="spleen3dPortal">10,0 mmHg</b></div></div>
-      <p class="micro">Modelo geométrico 3D esquemático, com camadas de parênquima, árvore arterial, rede microvascular ilustrativa e drenagem venosa. A intensidade visual acompanha o fluxo arterial esplênico agregado do simulador. Não representa segmentação anatômica, escala, distribuição microvascular real ou anatomia individual.</p>
+      <div class="territory-heading"><b>Compartimentos vasculares paralelos</b><button id="resetTerritories" class="ghost" type="button">Restaurar resistências</button></div><small class="territory-subtitle">Resistência relativa · distribuição de fluxo</small>
+      <div class="territory-controls">
+        <label><span>Superior <b id="rSuperiorValue">1,0×</b></span><input id="rSuperior" type="range" min="0.5" max="2" step="0.1" value="1"><small>Q: <strong id="qSuperior">0,052 L/min</strong></small></label>
+        <label><span>Intermediário <b id="rMiddleValue">1,0×</b></span><input id="rMiddle" type="range" min="0.5" max="2" step="0.1" value="1"><small>Q: <strong id="qMiddle">0,052 L/min</strong></small></label>
+        <label><span>Inferior <b id="rInferiorValue">1,0×</b></span><input id="rInferior" type="range" min="0.5" max="2" step="0.1" value="1"><small>Q: <strong id="qInferior">0,052 L/min</strong></small></label>
+      </div>
+      <p class="micro">Três territórios computacionais em paralelo. O fluxo é repartido por condutância relativa (1/R), mantendo a soma igual ao fluxo arterial esplênico agregado. O mesmo gradiente de pressão é assumido nos três leitos; resistências são adimensionais e exploratórias.</p>
+      <p class="micro">Geometria paramétrica tridimensional com territórios vasculares computacionais. Não representa segmentação anatômica, escala vascular real, perfusão microvascular medida ou anatomia individual.</p>
     </article>
     <article class="panel physiology-panel">
       <div class="panel-head"><div><span class="section-kicker">09 / RELAÇÕES FISIOLÓGICAS</span><h2>Variáveis derivadas</h2></div></div>
@@ -118,4 +90,4 @@
 <div class="panel"><div class="panel-head"><div><span class="section-kicker">INTERPRETAÇÃO</span><h2>Como ler os resultados</h2></div></div><ul class="interpretation"><li><b>LHS:</b> divide cada distribuição em estratos e melhora a cobertura do espaço amostral para o mesmo número de simulações.</li><li><b>Monte Carlo:</b> amostra aleatoriamente os parâmetros e estima a propagação conjunta das incertezas assumidas.</li><li><b>MCMC:</b> gera amostras posteriores condicionadas às observações, à verossimilhança Gaussiana e aos priors uniformes limitados.</li></ul><p class="micro">P05/P50/P95 são quantis da distribuição preditiva/posterior do modelo, não intervalos de confiança clínicos. MCMC exige avaliação de convergência, múltiplas cadeias, R-hat e tamanho efetivo de amostra antes de inferência científica.</p></div>
 </div></div></section>
 <section id="model" class="model-section"><div><span class="section-kicker">06 / MODELO MATEMÁTICO</span><h2>Um sistema fisiológico<br><em>reduzido e expansível.</em></h2></div><div class="model-copy"><p>O MVP representa quatro leitos arteriais em paralelo, acoplados a um compartimento portal com complacência e resistência de drenagem hepática. A pressão portal retroage sobre a perfusão regional.</p><div class="equation">dQᵢ/dt = (Qᵢ,alvo − Qᵢ) / τᵢ<br>Cₚ dPₚ/dt = Qₚ,entrada − Qₚ,saída</div><p>O fluxo de saída portal depende do gradiente entre pressão portal e venosa hepática. A entrega de oxigênio combina saída portal e componente arterial hepático simplificado.</p><a href="docs/model.md">Ler formulação, hipóteses e limitações →</a><br><a href="docs/model.tex">Abrir formulação matemática em LaTeX (.tex) →</a></div></section>
-<section class="notice"><strong>⚠ Uso exclusivamente experimental.</strong> Este protótipo não foi validado clinicamente, não representa um paciente real e não deve ser utilizado para decisões diagnósticas, terapêuticas ou intraoperatórias. Os parâmetros são ilustrativos.</section></main><footer><span>SPLEEN · Splanchnic Perfusion Simulation Environment</span><span>Research prototype · 2026</span></footer><script src="app.js"></script><script src="analysis.js"></script><script src="physiology.js"></script></body></html>
+<section class="notice"><strong>⚠ Uso exclusivamente experimental.</strong> Este protótipo não foi validado clinicamente, não representa um paciente real e não deve ser utilizado para decisões diagnósticas, terapêuticas ou intraoperatórias. Os parâmetros são ilustrativos.</section></main><footer><span>SPLEEN · Splanchnic Perfusion Simulation Environment</span><span>Research prototype · 2026</span></footer><script src="app.js"></script><script src="analysis.js"></script><script src="physiology.js"></script><script type="module" src="spleen3d.mjs"></script></body></html>

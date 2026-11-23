@@ -198,7 +198,7 @@ Os indicadores permanecem derivados de variáveis do modelo. APP = PAM − PIA �
 
 ## 16. Itens para revisão médico-matemática
 
-1. **Drenagem gástrica:** a formulação atual define entrada portal como fluxo intestinal + esplênico + pancreático, omitindo o compartimento gástrico. A fração da drenagem gástrica que deve compor o retorno portal deve ser discutida com especialistas e sustentada por uma definição anatômica/fisiológica explícita.
+1. **Drenagem gástrica:** a formulação atual inclui uma fração configurável do fluxo arterial gástrico no retorno portal e contabiliza o restante como retorno sistêmico simplificado. A fração padrão de 90% é uma hipótese de cenário, não uma estimativa anatômica validada.
 2. **Variável esplênica:** distinguir fluxo arterial macroscópico, perfusão microvascular, distribuição regional e entrega/consumo de oxigênio.
 3. **Pneumoperitônio e pressão:** revisar o uso de PIA como entrada, a pressão venosa efetiva e o gradiente que dirige o fluxo; evitar dupla contagem de efeitos de pressão.
 4. **Vasopressor e volemia:** substituir índices abstratos por variáveis mecanísticas identificáveis, quando houver parâmetros e dados adequados; não interpretar o índice atual como dose.
@@ -240,3 +240,23 @@ A geometria pode ser rotacionada por arraste e restaurada pela ação de reset. 
 2. Definir hierarquia arterial/venosa com calibres, comprimentos e resistências rastreáveis.
 3. Implementar malha volumétrica e campos espaciais somente após especificação das condições de contorno.
 4. Verificar conservação de massa e convergência antes de qualquer interpretação fisiológica.
+
+
+## 19. Superfície paramétrica 3D e territórios vasculares paralelos
+
+A visualização espacial utiliza Three.js para gerar uma superfície paramétrica tridimensional do baço, com deformação geométrica simplificada para sugerir o contorno e a região hilar. Uma árvore arterial ramificada distribui-se pela superfície; ramos venosos convergem para um tronco de saída. Três territórios computacionais (superior, intermediário e inferior) são mostrados como regiões internas translúcidas.
+
+Cada território recebe uma resistência relativa configurável $R_i^*$. Sob a hipótese de três leitos em paralelo sujeitos ao mesmo gradiente de pressão, a fração de fluxo atribuída ao território $i$ é:
+
+$$
+Q_i = Q_{spl} \frac{1/R_i^*}{\sum_{j=1}^{3} 1/R_j^*}
+$$
+
+Assim, $\sum_i Q_i=Q_{spl}$ por construção. Os valores iniciais $R_i^*=1$ produzem uma divisão igual entre os três territórios; essa divisão é apenas uma condição computacional de referência, não uma descrição de segmentos anatômicos ou de perfusão real.
+
+As resistências são adimensionais e atuam somente na camada espacial. Elas não modificam a EDO compartimental global, a pressão portal nem o fluxo esplênico total. O modelo assume gradiente comum entre os leitos e não resolve pressão local, complacência, armazenamento vascular, autorregulação, fluxo pulsátil, microcirculação ou transporte de oxigênio. O campo de fluxo regional é uma partição matemática conservativa do fluxo agregado, não uma previsão clínica.
+
+A malha de superfície é procedural e paramétrica, não derivada de TC/RM, atlas segmentado ou anatomia individual. A árvore vascular é esquemática; calibres, comprimentos e ramificações não são anatômicos. A visualização não constitui CFD, elementos finitos ou modelo anatômico validado.
+
+
+A cena tridimensional requer WebGL e carrega Three.js 0.180.0 por CDN (jsDelivr). Se WebGL estiver indisponível, os controles e resultados do simulador compartimental permanecem independentes da visualização 3D. A implementação depende de conexão externa para carregar a biblioteca visual.
