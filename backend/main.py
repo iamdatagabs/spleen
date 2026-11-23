@@ -158,16 +158,19 @@ def _sample_outputs(params, base):
         raise ValueError(out["error"])
     return out["timeline"][-1]
 
+def _quantiles(values):
+    vals = sorted(float(v) for v in values)
+    def pct(q):
+        pos = (len(vals)-1)*q
+        lo = int(pos); hi = min(lo+1, len(vals)-1)
+        return vals[lo] + (vals[hi]-vals[lo])*(pos-lo)
+    return {"p05": pct(.05), "p50": pct(.50), "p95": pct(.95),
+            "mean": sum(vals)/len(vals), "min": vals[0], "max": vals[-1]}
+
 def _summarize(rows):
     summary = {}
     for metric in OUTPUT_METRICS:
-        vals = sorted(float(row[metric]) for row in rows)
-        def pct(q):
-            pos = (len(vals)-1)*q
-            lo = int(pos); hi = min(lo+1, len(vals)-1)
-            return vals[lo] + (vals[hi]-vals[lo])*(pos-lo)
-        summary[metric] = {"p05": pct(.05), "p50": pct(.50), "p95": pct(.95),
-                           "mean": sum(vals)/len(vals), "min": vals[0], "max": vals[-1]}
+        summary[metric] = _quantiles([row[metric] for row in rows])
     return summary
 
 @app.post("/api/v1/uncertainty")
@@ -237,7 +240,7 @@ def posterior_mcmc(request: GlobalAnalysisRequest):
             "samples": len(chain), "burn_in": request.burn_in, "thin": request.thin,
             "acceptance_rate": accepted/total, "parameter_bounds": PARAMETER_BOUNDS,
             "posterior_summary": _summarize(output_chain),
-            "parameter_summary": {name: _summarize([{name: x[name]} for x in chain])[name] for name in names},
+            "parameter_summary": {name: _quantiles([x[name] for x in chain]) for name in names},
             "parameter_samples": chain, "output_samples": output_chain,
             "observations": request.observations,
             "warnings": ["Posterior results depend on the supplied observations, stated standard deviations, priors and proposal settings.",
