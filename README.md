@@ -40,6 +40,7 @@ pytest -q
 GitHub Actions runs these tests on pushes and pull requests. The current suite checks baseline equilibrium, portal balance, nonnegative flows under a stress scenario, and time-step refinement.
 
 ## Documentation
+- [Apostila de fundamentação matemática e fisiologia (LaTeX)](docs/apostila_fundamentacao_matematica.tex)
 - [Mathematical model](docs/model.md)
 - [Requirements](docs/requirements.md)
 - [Deployment guide](docs/deployment.md)
