@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="SPLEEN API", version="0.7.0")
+app = FastAPI(title="SPLEEN API", version="0.8.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 FRACTIONS = (.18, .62, .13, .07)
 TAU = (1.8, 2.8, 1.5, 2.2)
