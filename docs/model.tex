@@ -64,7 +64,7 @@ em que $\tau_i$ são constantes de tempo regionais (min) e $s_\tau$ é um fator 
 Q_{\mathrm{portal,in}}&=f_gQ_e+Q_{int}+Q_b+Q_{panc},\\
 Q_{\mathrm{portal,out}}&=\max\left(0,\frac{P_p-P_{hv}}{R_h}\right),
 \end{align}
-A entrada portal inclui uma fração configurável do fluxo arterial gástrico. A parcela complementar é contabilizada como retorno venoso sistêmico simplificado, fora do compartimento portal. O parâmetro $f_g$ não representa uma fração anatômica universal: é uma hipótese exploratória para análise de sensibilidade, que exige revisão anatômica e clínica. O valor inicial do protótipo é $f_g=0.90$. A condição basal usa $R_h=5/(0.984+0.90\\times0.216)$ mmHg/(L/min), apenas para preservar o equilíbrio numérico inicial em $P_p=10$ mmHg.
+A entrada portal inclui uma fração configurável do fluxo arterial gástrico. A parcela complementar é contabilizada como retorno venoso sistêmico simplificado, fora do compartimento portal. O parâmetro $f_g$ não representa uma fração anatômica universal: é uma hipótese exploratória para análise de sensibilidade, que exige revisão anatômica e clínica. O valor inicial do protótipo é $f_g=0.90$. A condição basal usa $R_h=5/(0.984+0.90\times0.216)$ mmHg/(L/min), apenas para preservar o equilíbrio numérico inicial em $P_p=10$ mmHg.
 Com $P_{hv}=5$ mmHg e $R_h$ em mmHg/(L\,min$^{-1}$). A dinâmica do compartimento portal é
 \begin{equation}
 \boxed{C_p\frac{dP_p}{dt}=Q_{\mathrm{portal,in}}-Q_{\mathrm{portal,out}}},
