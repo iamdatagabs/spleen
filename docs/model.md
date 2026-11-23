@@ -278,3 +278,12 @@ com $Q_{in,i}=Q_{spl}/3$, $P_v=5$ mmHg, $R_0=5/0,052$ mmHg/(L/min), e $C_i=0,02$
 A soma das entradas territoriais é igual ao fluxo arterial esplênico. A soma das saídas venosas territoriais passa a compor o retorno portal, evitando contar o fluxo arterial esplênico como se fosse drenagem venosa instantânea. A diferença instantânea entre entrada e saída representa armazenamento/liberação de volume no compartimento complacente.
 
 A integração usa Euler explícito com o mesmo passo temporal do modelo global. A estabilidade e convergência devem ser verificadas em refinamentos de passo, especialmente nos extremos de resistência e complacência. O modelo não representa anatomia segmentar real, vasos individuais, pressão transmural, autorregulação, fluxo pulsátil ou microcirculação. Trata-se de uma extensão exploratória de ordem reduzida, sem aplicação clínica.
+
+
+## 21. Perfis distribuídos de pressão ao longo dos ramos — v0.9.0
+
+Cada território expõe perfis nodais simplificados de pressão no trajeto arterial e venoso. O trajeto arterial liga uma pressão de fonte efetiva (derivada da PAM e dos índices abstratos já usados pelo modelo) à pressão do compartimento complacente. O trajeto venoso liga a pressão do compartimento à pressão venosa hepática assumida de 5 mmHg. O fluxo é considerado constante ao longo de cada caminho serial, sem perdas laterais ou armazenamento nos segmentos individuais.
+
+Cada caminho contém três quedas de pressão com frações fixas (25%, 50%, 25%) para produzir nós intermediários visualizáveis. Essas frações não representam calibres, comprimentos, resistências segmentares ou anatomia medidos. A pressão nodal intermediária é uma interpolação determinística entre as condições de contorno, não a solução de uma rede vascular anatômica. O modelo continua com armazenamento complacente concentrado no compartimento territorial; não resolve equações de momentum, fluxo pulsátil, bifurcações acopladas, colaterais, microcirculação ou CFD.
+
+Os perfis servem como camada de visualização e inspeção de gradientes, mantendo explícita a diferença entre variáveis de estado (pressão territorial e fluxos) e nós interpolados para representação espacial.
