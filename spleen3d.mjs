@@ -1,5 +1,5 @@
 import { distributeTerritoryFlow, territoryVisualMetrics } from "./spatial-model.mjs";
-import { calculateTerritoryOxygen } from "./oxygen-transport.mjs";
+import { calculateTerritoryOxygen, sampleOxygenField } from "./oxygen-transport.mjs";
 
 const host=document.getElementById("spleen3d"),canvas=document.getElementById("spleen3dCanvas"),fallback=document.getElementById("spleen3dFallback");
 if(host&&canvas){
@@ -15,11 +15,15 @@ if(host&&canvas){
     const geometry=new THREE.SphereGeometry(1,80,64),pos=geometry.attributes.position;
     for(let i=0;i<pos.count;i++){let x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);const notch=Math.exp(-Math.pow((x-.58)/.24,2)-Math.pow(y/.24,2)-Math.pow((z-.72)/.45,2));const taper=1-.13*Math.pow(Math.abs(x),2);x=x*1.38*taper;y=y*.79*(1-.05*x);z=z*.52-notch*.18;pos.setXYZ(i,x,y,z);}
     geometry.computeVertexNormals();
-    const capsule=new THREE.Mesh(geometry,new THREE.MeshPhysicalMaterial({color:"#a95068",roughness:.48,metalness:.02,clearcoat:.28,clearcoatRoughness:.35}));capsule.castShadow=true;capsule.receiveShadow=true;organ.add(capsule);
+    geometry.setAttribute("color",new THREE.BufferAttribute(new Float32Array(pos.count*3),3));
+    const capsule=new THREE.Mesh(geometry,new THREE.MeshPhysicalMaterial({color:"#ffffff",vertexColors:true,roughness:.48,metalness:.02,clearcoat:.28,clearcoatRoughness:.35}));capsule.castShadow=true;capsule.receiveShadow=true;organ.add(capsule);
     const hilum=new THREE.Mesh(new THREE.SphereGeometry(.095,24,16),new THREE.MeshStandardMaterial({color:"#f0c68f",emissive:"#6b3b28",emissiveIntensity:.35}));hilum.position.set(.78,0,.39);organ.add(hilum);
     const vascular=new THREE.Group();organ.add(vascular);
     const territories=[{key:"superior",label:"Superior",color:"#f4bd67",center:new THREE.Vector3(-.15,.43,.27),radius:.34},{key:"middle",label:"Intermediário",color:"#58d6c2",center:new THREE.Vector3(.02,0,.39),radius:.36},{key:"inferior",label:"Inferior",color:"#69a9ff",center:new THREE.Vector3(-.18,-.43,.25),radius:.33}];
     const zoneMeshes=[],pressureNodes=[];
+    const oxygenCenters=territories.map(t=>({x:t.center.x,y:t.center.y,z:t.center.z}));
+    const oxygenLow=new THREE.Color("#ef626b"),oxygenMid=new THREE.Color("#f4bd67"),oxygenHigh=new THREE.Color("#58d6c2");
+    const updateOxygenSurface=()=>{const colors=geometry.attributes.color;for(let i=0;i<pos.count;i++){const ratio=sampleOxygenField({x:pos.getX(i),y:pos.getY(i),z:pos.getZ(i)},territoryState,oxygenCenters);const color=ratio<.7?oxygenLow.clone().lerp(oxygenMid,Math.max(0,ratio/.7)):oxygenMid.clone().lerp(oxygenHigh,Math.min(1,(ratio-.7)/.3));colors.setXYZ(i,color.r,color.g,color.b);}colors.needsUpdate=true;};
     territories.forEach(t=>{const zone=new THREE.Mesh(new THREE.SphereGeometry(t.radius,32,24),new THREE.MeshPhysicalMaterial({color:t.color,transparent:true,opacity:.25,roughness:.25,metalness:.05,depthWrite:false,emissive:t.color,emissiveIntensity:.12}));zone.position.copy(t.center);zone.scale.set(1.2,.85,.58);organ.add(zone);zoneMeshes.push(zone);const node=new THREE.Mesh(new THREE.SphereGeometry(.075,20,16),new THREE.MeshStandardMaterial({color:"#58d6c2",emissive:"#58d6c2",emissiveIntensity:.35,roughness:.3}));node.position.copy(t.center).add(new THREE.Vector3(0,0,.12));organ.add(node);pressureNodes.push(node);});
     const tube=(points,radius,color,parent=vascular)=>{const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const material=new THREE.MeshStandardMaterial({color,roughness:.34,metalness:.04,emissive:color,emissiveIntensity:.18});const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,48,radius,10,false),material);parent.add(mesh);return{mesh,curve,material};};
     tube([[-2.05,.05,.12],[-1.55,.04,.16],[-1.12,.02,.2],[-.78,0,.25]],.065,"#ff746d");
@@ -44,6 +48,7 @@ if(host&&canvas){
       const total=Number(state?.regionalFlows?.spleen??.156),dynamic=state?.splenicTerritories;
       territoryState=dynamic?.length===3?dynamic:distributeTerritoryFlow(total,resistances).map((q,i)=>({arterialInflow:q,venousOutflow:q,pressure:10,relativeResistance:resistances[i]}));
       territoryState=calculateTerritoryOxygen(territoryState);
+      updateOxygenSurface();
       territories.forEach((t,i)=>{
         const d=territoryState[i],visual=territoryVisualMetrics({arterialInflow:Number(d.arterialInflow),venousOutflow:Number(d.venousOutflow),pressure:Number(d.pressure)}),frac=total>0?Number(d.arterialInflow)/total:1/3;
         zoneMeshes[i].material.opacity=.13+.46*frac;zoneMeshes[i].material.emissiveIntensity=.08+.55*frac;
@@ -61,7 +66,7 @@ if(host&&canvas){
     };
     ["Superior","Middle","Inferior"].forEach((name,i)=>{const input=document.getElementById("r"+name);input?.addEventListener("input",()=>{resistances[i]=Number(input.value);window.dispatchEvent(new CustomEvent("spleen-territory-resistance-change"));updateCompartments();});});
     document.getElementById("resetTerritories")?.addEventListener("click",()=>{resistances=[1,1,1];["Superior","Middle","Inferior"].forEach(name=>{const input=document.getElementById("r"+name);if(input)input.value="1";});window.dispatchEvent(new CustomEvent("spleen-territory-resistance-change"));updateCompartments();});
-    window.updateSpleenSpatialState=next=>{state=next;updateCompartments();};if(state)updateCompartments();
+    window.updateSpleenSpatialState=next=>{state=next;updateCompartments();};updateCompartments();
     const clock=new THREE.Clock();
     const animate=()=>{requestAnimationFrame(animate);const t=clock.getElapsedTime();organ.rotation.y=yaw;organ.rotation.x=pitch;camera.position.z=zoom;camera.lookAt(0,0,0);territoryVessels.forEach((v,i)=>{const d=territoryState[i]||{arterialInflow:.052,venousOutflow:.052,pressure:10};const visual=territoryVisualMetrics({arterialInflow:Number(d.arterialInflow),venousOutflow:Number(d.venousOutflow),pressure:Number(d.pressure??10)});v.arterialBeads.forEach(p=>p.mesh.position.copy(v.artery.curve.getPoint((p.phase+t*visual.arterialParticleSpeed)%1)));v.venousBeads.forEach(p=>p.mesh.position.copy(v.vein.curve.getPoint((p.phase+t*visual.venousParticleSpeed)%1)));});renderer.render(scene,camera);};
     animate();window.addEventListener("resize",resize);
