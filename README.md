@@ -9,12 +9,13 @@ GitHub Pages is enabled and the initial deployment completed successfully. Open 
 
 The latest commits may still be propagating while their Actions runs finish. [Deployment history](https://github.com/iamdatagabs/spleen/actions).
 
-## Current model — v0.6.0
+## Current model — v0.7.0
 - Four regional arterial flow compartments (stomach, intestine, spleen and pancreas).
 - Coupled portal pressure compartment with compliance and hepatic outflow resistance.
 - Simplified feedback from portal pressure to regional target flow.
 - Derived portal inflow, hepatic outflow, hepatic arterial flow and hepatic oxygen-delivery indicator.
 - Browser simulation, time-series chart, CSV export, and an interactive global-uncertainty workspace.
+- Interactive conceptual 3D spleen view with parenchyma, splenic artery tree, illustrative microvascular network and venous return; vessel emphasis is coupled to the aggregate splenic arterial flow state.
 - Browser-side LHS, Monte Carlo and exploratory four-chain MCMC with split-R-hat, approximate ESS and lag-1 autocorrelation diagnostics, with P05/P50/P95 summaries and CSV export.
 - Python API endpoints: `POST /api/v1/sensitivity`, `POST /api/v1/uncertainty` (LHS/Monte Carlo) and `POST /api/v1/mcmc` (requires observations).
 - Python/FastAPI reference implementation with configurable structural parameters and a local OAT sensitivity endpoint (`POST /api/v1/sensitivity`).
@@ -50,7 +51,7 @@ GitHub Actions runs these tests on pushes and pull requests. The current suite c
 The browser dashboard runs LHS, Monte Carlo and an exploratory Random-Walk Metropolis MCMC locally. MCMC requires explicit observations with `metric`, `value` and positive `sd`; the default example is a placeholder and must not be treated as patient data. The Python API exposes equivalent analysis endpoints. The MCMC implementation uses independent chains and reports exploratory convergence diagnostics; these do not establish physiological validity or parameter identifiability.
 
 ## Model scope and safety
-This is a **research/educational prototype**, not a patient-specific simulator, clinical decision-support system, or validated physiological model. Values and coefficients are illustrative and must not guide clinical care. The current implementation is a lumped-parameter coupled ODE model; it does not solve spatial oxygen-transport PDEs or 3D Navier–Stokes equations.
+This is a **research/educational prototype**, not a patient-specific simulator, clinical decision-support system, or validated physiological model. Values and coefficients are illustrative and must not guide clinical care. The current implementation is a lumped-parameter coupled ODE model. The 3D spleen is a vector-based conceptual visualization, not a segmented anatomical mesh or spatial CFD model; it does not solve oxygen-transport PDEs or 3D Navier–Stokes equations.
 
 ## Roadmap
 1. Expand simulation-based calibration, parameter recovery and identifiability analysis with synthetic data.
@@ -64,7 +65,7 @@ This is a **research/educational prototype**, not a patient-specific simulator, 
 MIT (prototype code).
 
 
-## Mathematical specification and methodological investigations (v0.6.0)
+## Mathematical specification and methodological investigations (v0.7.0)
 
 - LaTeX formulation: [`docs/model.tex`](docs/model.tex), with a readable companion at [`docs/model.md`](docs/model.md).
 - Local identifiability screening: `POST /api/v1/identifiability`.
