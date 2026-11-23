@@ -51,3 +51,6 @@
 @media(max-width:600px){.spleen-stage{height:300px}.spleen-3d{height:260px}.territory-controls{grid-template-columns:1fr}.territory-controls label{padding:8px}}
 
 .spleen3d-fallback[hidden]{display:none!important}.territory-subtitle{display:block;color:var(--muted);font-size:9px;margin:-5px 0 8px}
+
+/* Spatial hemodynamics v1.1 — pressure legend */
+.pressure-legend{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 4px;color:var(--muted);font-size:9px}.pressure-legend span{display:inline-flex;align-items:center;gap:5px}.pressure-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px currentColor}.pressure-low{background:#69a9ff;color:#69a9ff}.pressure-reference{background:#58d6c2;color:#58d6c2}.pressure-raised{background:#f4bd67;color:#f4bd67}.pressure-high{background:#ef626b;color:#ef626b}
