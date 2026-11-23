@@ -98,6 +98,9 @@ if(host&&canvas){
         const rEl=document.getElementById("r"+label+"Value"),qEl=document.getElementById("q"+label);
         if(rEl)rEl.textContent=resistances[i].toFixed(1).replace(".",",")+"×";
         if(qEl)qEl.textContent=fmt(dynamic?.[i]?.venousOutflow??flows[i])+" L/min · P "+fmt(dynamic?.[i]?.pressure??10)+" mmHg";
+        const pathEl=document.getElementById("path"+label);
+        const ap=dynamic?.[i]?.arterialPath, vp=dynamic?.[i]?.venousPath;
+        if(pathEl&&ap?.length===4&&vp?.length===4)pathEl.textContent="P arterial: "+fmt(ap[0].pressure_mmhg)+" → "+fmt(ap[3].pressure_mmhg)+" · P venosa: "+fmt(vp[0].pressure_mmhg)+" → "+fmt(vp[3].pressure_mmhg)+" mmHg";
       });
     };
     ["Superior","Middle","Inferior"].forEach((name,i)=>{
