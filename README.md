@@ -9,13 +9,13 @@ GitHub Pages is enabled and the initial deployment completed successfully. Open 
 
 The latest commits may still be propagating while their Actions runs finish. [Deployment history](https://github.com/iamdatagabs/spleen/actions).
 
-## Current model — v0.2.0
+## Current model — v0.3.0
 - Four regional arterial flow compartments (stomach, intestine, spleen and pancreas).
 - Coupled portal pressure compartment with compliance and hepatic outflow resistance.
 - Simplified feedback from portal pressure to regional target flow.
 - Derived portal inflow, hepatic outflow, hepatic arterial flow and hepatic oxygen-delivery indicator.
 - Browser simulation, time-series chart and CSV export.
-- Python/FastAPI reference implementation.
+- Python/FastAPI reference implementation with configurable structural parameters and a local OAT sensitivity endpoint (`POST /api/v1/sensitivity`).
 
 ## Quick start
 Open `index.html` in a modern browser, or serve the repository locally:
@@ -47,11 +47,12 @@ GitHub Actions runs these tests on pushes and pull requests. The current suite c
 This is a **research/educational prototype**, not a patient-specific simulator, clinical decision-support system, or validated physiological model. Values and coefficients are illustrative and must not guide clinical care. The current implementation is a lumped-parameter coupled ODE model; it does not solve spatial oxygen-transport PDEs or 3D Navier–Stokes equations.
 
 ## Roadmap
-1. Verify numerical convergence and implementation parity between JavaScript and Python.
-2. Perform parameter sensitivity and uncertainty analysis.
-3. Replace illustrative coefficients with traceable experimental/clinical data under appropriate approvals.
-4. Add spatial oxygen transport PDE and numerical convergence tests.
-5. Validate against independent data before any clinical translation.
+1. Integrate the v0.3.0 sensitivity controls and results into the browser interface; the current browser simulator remains the v0.2.0 demonstrator.
+2. Verify numerical convergence and implementation parity between JavaScript and Python.
+3. Extend local OAT analysis to global uncertainty analysis (Latin Hypercube / Monte Carlo) using justified parameter distributions.
+4. Replace illustrative coefficients with traceable experimental/clinical data under appropriate approvals.
+5. Add spatial oxygen transport PDE and numerical convergence tests.
+6. Validate against independent data before any clinical translation.
 
 ## License
 MIT (prototype code).
