@@ -56,3 +56,13 @@ def test_default_parameters_preserve_equilibrium():
     result = final_state(Parameters())
     assert math.isclose(result["portal_pressure_mmhg"], 10.0, abs_tol=1e-8)
     assert math.isclose(result["portal_inflow_l_min"], result["hepatic_portal_outflow_l_min"], abs_tol=1e-8)
+
+def test_sensitivity_respects_parameter_bounds():
+    payload = Parameters(
+        duration_min=2, portal_compliance=.005, hepatic_resistance=.1,
+        portal_feedback_gain=0, tau_scale=.25
+    )
+    result = sensitivity(Request(parameters=payload))
+    assert len(result["results"]) == 4
+    for row in result["results"]:
+        assert row["high"] > row["low"]
