@@ -1,0 +1,528 @@
+\documentclass[11pt,a4paper,oneside]{book}
+
+% Compilação recomendada: pdfLaTeX (ou LuaLaTeX).
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage{siunitx}
+\usepackage{booktabs,longtable,array}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\usepackage{listings}
+
+\geometry{a4paper,top=2.5cm,bottom=2.5cm,left=2.8cm,right=2.3cm}
+\sisetup{output-decimal-marker={,},per-mode=symbol}
+\hypersetup{colorlinks=true,linkcolor=blue!45!black,urlcolor=blue!55!black,citecolor=blue!45!black}
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{1.2em}
+\setlist{itemsep=0.2em,topsep=0.3em}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{SPLEEN — Apostila de fundamentação}
+\fancyhead[LO,RE]{Fisiologia e modelagem matemática}
+\fancyfoot[C]{\thepage}
+\setlength{\headheight}{14pt}
+
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\diff}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\pder}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\Qtot}{Q_{\mathrm{tot}}}
+\newcommand{\Qportin}{Q_{\mathrm{portal,in}}}
+\newcommand{\Qportout}{Q_{\mathrm{portal,out}}}
+\newcommand{\Pport}{P_{\mathrm{p}}}
+\newcommand{\MAP}{\mathrm{PAM}}
+\newcommand{\CaO}{C_{\mathrm{a}O_2}}
+\newcommand{\Do}{D_{O_2}}
+\newcommand{\R}{\mathbb{R}}
+
+\title{\Huge\bfseries Fundamentação matemática da perfusão esplâncnica\\[0.4em]
+\Large Fisiologia, equações diferenciais e modelagem computacional aplicada ao SPLEEN}
+\author{Material didático de apoio ao projeto SPLEEN}
+\date{Versão 1.0 — novembro de 2026}
+
+\begin{document}
+\frontmatter
+\maketitle
+
+\begin{tcolorbox}[colback=blue!3,colframe=blue!45!black,title=Propósito e escopo]
+Esta apostila apresenta os fundamentos físicos, fisiológicos e matemáticos necessários para compreender um modelo computacional reduzido da perfusão esplâncnica. O percurso parte de pressão, fluxo e resistência; passa por complacência, balanços de massa e transporte de oxigênio; e chega a sistemas de equações diferenciais ordinárias (EDOs), discretização numérica e inferência de parâmetros.
+
+O texto tem finalidade educacional e metodológica. O SPLEEN é um protótipo de pesquisa, com relações fenomenológicas e coeficientes ainda não calibrados nem validados contra dados fisiológicos independentes. Não é um simulador individual, não representa toda a fisiologia perioperatória e não deve orientar diagnóstico, prescrição ou decisão intraoperatória.
+\end{tcolorbox}
+
+\tableofcontents
+
+\mainmatter
+
+\chapter{Como transformar uma pergunta fisiológica em um modelo matemático}
+
+\section{A pergunta científica}
+Durante uma operação do aparelho digestivo, diferentes fatores podem modificar a circulação abdominal: alterações da pressão arterial, ventilação e pressão intratorácica, pneumoperitônio, posicionamento, volemia, anestesia, fármacos vasoativos, manipulação cirúrgica e condições prévias do paciente. A questão de interesse não é apenas se o fluxo sanguíneo total aumenta ou diminui, mas como ele se distribui entre territórios e como a drenagem venosa portal responde.
+
+A perfusão esplâncnica envolve órgãos e leitos vasculares com funções e controles distintos. Para construir um primeiro modelo, é necessário reduzir essa complexidade sem perder os mecanismos essenciais à pergunta. Essa operação intelectual é chamada \textit{abstração} ou \textit{modelagem}.
+
+\section{Do fenômeno aos elementos matemáticos}
+Um modelo dinâmico pode ser descrito por cinco elementos:
+\begin{enumerate}
+  \item \textbf{Estados:} grandezas que variam ao longo do tempo e resumem a condição do sistema.
+  \item \textbf{Entradas:} variáveis externas ou intervenções que afetam o sistema.
+  \item \textbf{Parâmetros:} propriedades assumidas constantes durante uma simulação.
+  \item \textbf{Equações:} relações que descrevem como os estados mudam.
+  \item \textbf{Saídas:} grandezas calculadas ou observadas para responder à pergunta.
+\end{enumerate}
+
+No SPLEEN, os estados principais são os fluxos arteriais regionais e a pressão do compartimento portal. Entradas incluem pressão arterial média, pressão de pneumoperitônio, um índice abstrato de suporte vasopressor e perda volêmica estimada. Parâmetros incluem resistências, complacência, ganhos de retroalimentação e constantes de tempo.
+
+\begin{tcolorbox}[colback=green!3,colframe=green!40!black,title=Regra de interpretação]
+Uma variável de entrada não é automaticamente um mecanismo fisiológico. Por exemplo, um índice numérico de vasopressor não equivale à dose de noradrenalina, nem determina sozinho a resposta vascular. Para representar um fármaco real, seriam necessários fármaco, dose, via, farmacocinética, farmacodinâmica e contexto fisiológico.
+\end{tcolorbox}
+
+\section{Modelos de diferentes níveis de complexidade}
+É útil distinguir:
+\begin{itemize}
+  \item \textbf{Modelo conceitual:} organiza mecanismos e relações causais.
+  \item \textbf{Modelo compartimental:} representa regiões como volumes concentrados, sem resolver a geometria interna.
+  \item \textbf{Modelo distribuído:} descreve variações no espaço por equações diferenciais parciais.
+  \item \textbf{Modelo de dinâmica dos fluidos computacional (CFD):} resolve equações de conservação em uma geometria e malha, com condições de contorno e propriedades do fluido.
+\end{itemize}
+A escolha deve ser orientada pela pergunta, pelos dados disponíveis e pela possibilidade de validação. Mais complexidade matemática não significa, por si só, mais verdade fisiológica.
+
+\chapter{Fundamentos hemodinâmicos}
+
+\section{Pressão, fluxo e resistência}
+Uma analogia inicial útil é a lei de Ohm elétrica: corrente é proporcional à diferença de potencial e inversamente proporcional à resistência. Em uma aproximação hemodinâmica estacionária:
+\begin{equation}
+  Q = \frac{\Delta P}{R},
+  \label{eq:ohm}
+\end{equation}
+em que $Q$ é o fluxo volumétrico, $\Delta P=P_{\mathrm{entrada}}-P_{\mathrm{saída}}$ é o gradiente de pressão e $R$ é a resistência hidráulica efetiva.
+
+A analogia não deve ser interpretada literalmente: vasos são estruturas deformáveis, o sangue é não newtoniano em certas escalas, o fluxo pode ser pulsátil e a resistência varia com calibre, tônus, pressão transmural e recrutamento vascular. Ainda assim, a relação ajuda a organizar o raciocínio.
+
+\section{Lei de Poiseuille: origem e limites}
+Para escoamento laminar, estacionário, plenamente desenvolvido, de fluido newtoniano em tubo cilíndrico rígido, a lei de Poiseuille fornece:
+\begin{equation}
+  Q=\frac{\pi r^4}{8\mu L}\Delta P,
+  \qquad
+  R=\frac{8\mu L}{\pi r^4},
+  \label{eq:poiseuille}
+\end{equation}
+onde $r$ é o raio, $\mu$ a viscosidade dinâmica e $L$ o comprimento do tubo. O expoente quatro mostra que pequenas mudanças de raio podem alterar intensamente a resistência idealizada.
+
+A circulação real não é um conjunto de tubos rígidos e isolados. A equação serve como fundamento qualitativo para compreender a importância do calibre vascular, mas não deve ser usada para inferir diretamente a resistência de um órgão sem geometria e dados adequados.
+
+\section{Resistências em série e em paralelo}
+Em série, a mesma vazão atravessa os elementos e as quedas de pressão se somam:
+\begin{equation}
+  R_{\mathrm{eq,série}}=\sum_{k=1}^{n}R_k.
+\end{equation}
+Em paralelo, a diferença de pressão é compartilhada e os fluxos se somam:
+\begin{equation}
+  \frac{1}{R_{\mathrm{eq,paralelo}}}=\sum_{k=1}^{n}\frac{1}{R_k}.
+\end{equation}
+Os leitos vasculares de órgãos podem ser pensados como caminhos em paralelo conectados a segmentos arteriais e venosos comuns. Essa representação é uma simplificação de uma rede vascular ramificada.
+
+\section{Pressão arterial média e gradiente de perfusão}
+A pressão arterial média (PAM) é uma medida resumida da pressão arterial ao longo do ciclo cardíaco. Em frequência cardíaca e duração de fases usuais, uma aproximação didática é:
+\begin{equation}
+  \MAP \approx P_{\mathrm{diastólica}}+
+  \frac{1}{3}(P_{\mathrm{sistólica}}-P_{\mathrm{diastólica}}).
+\end{equation}
+A aproximação perde precisão em frequências cardíacas muito elevadas, ritmos irregulares e condições hemodinâmicas específicas.
+
+A perfusão de um órgão depende do gradiente entre a pressão a montante e a pressão a jusante, além da resistência do leito. Assim, PAM isolada não determina fluxo. Pressão venosa, pressão intra-abdominal, pressão tecidual e autorregulação podem modificar a pressão efetiva de perfusão.
+
+\section{Pneumoperitônio e pressão abdominal}
+O pneumoperitônio eleva a pressão intra-abdominal e pode modificar retorno venoso, pressão venosa, resistência vascular, compressão de vasos e perfusão de órgãos. A resposta depende de pressão aplicada, duração, posição, volemia, ventilação, complacência abdominal e estado cardiovascular.
+
+No SPLEEN, o pneumoperitônio entra como variável de cenário que modifica um gradiente efetivo e um fator regional intestinal. Isso é uma parametrização de hipótese: não constitui uma lei universal, nem substitui medidas de pressão, fluxo ou resistência.
+
+\chapter{Fisiologia da circulação esplâncnica e portal}
+
+\section{Territórios e heterogeneidade}
+A circulação esplâncnica irriga órgãos gastrointestinais, fígado, pâncreas, baço e estruturas associadas. A distribuição do fluxo é heterogênea e muda com alimentação, atividade metabólica, estado autonômico, volume circulante e condições sistêmicas.
+
+O protótipo atual representa quatro leitos arteriais agregados: estômago, intestino, baço e pâncreas. Essa escolha não implica que a anatomia vascular seja composta por quatro compartimentos isolados. É uma redução útil para explorar distribuição regional e acoplamento portal.
+
+\section{Circulação portal}
+Grande parte do sangue venoso proveniente do intestino, baço e pâncreas converge para o sistema porta e segue ao fígado. O fluxo portal de entrada pode ser representado, em primeira aproximação, por:
+\begin{equation}
+  \Qportin=Q_{\mathrm{int}}+Q_{\mathrm{baço}}+Q_{\mathrm{pâncreas}}.
+  \label{eq:portal-in}
+\end{equation}
+O fluxo que chega ao fígado não deve ser confundido com a soma de todos os fluxos arteriais esplâncnicos: no modelo atual, o fluxo gástrico não é incluído diretamente nessa soma agregada, e a drenagem venosa real possui anatomia e comunicações mais complexas.
+
+\section{Pressão portal, resistência e complacência}
+A pressão portal resulta da interação entre fluxo que entra, resistência ao escoamento e propriedades do sistema venoso. Uma aproximação resistiva para a saída portal-hepática é:
+\begin{equation}
+  \Qportout=\frac{\Pport-P_{\mathrm{hv}}}{R_h},
+  \label{eq:portal-out}
+\end{equation}
+quando o gradiente é positivo. $P_{\mathrm{hv}}$ representa uma pressão de referência a jusante e $R_h$ uma resistência efetiva agregada. O uso de um operador de truncamento para impedir fluxo negativo é uma salvaguarda computacional, não uma descrição completa da fisiologia.
+
+A complacência é definida como a variação de volume em relação à variação de pressão:
+\begin{equation}
+  C=\frac{\dd V}{\dd P}.
+\end{equation}
+Em um compartimento concentrado, a complacência relaciona desequilíbrio de fluxo à velocidade de mudança da pressão. Uma complacência maior implica, para o mesmo desequilíbrio de vazão, uma variação de pressão mais lenta.
+
+\section{O que o modelo não representa}
+A representação portal reduzida não resolve veias individuais, sinusoides hepáticos, gradientes regionais intra-hepáticos, colaterais portossistêmicas, autorregulação microvascular, controle neural e hormonal ou interação completa com o débito cardíaco e o retorno venoso. Esses mecanismos podem ser importantes dependendo da pergunta científica.
+
+\chapter{Balanços de conservação e compartimentos}
+
+\section{Conservação de volume}
+A base de um modelo compartimental é a conservação: a taxa de acúmulo de uma grandeza em um compartimento corresponde à entrada menos a saída, acrescida de fontes ou sumidouros internos, se existirem.
+
+Para volume:
+\begin{equation}
+  \diff{V}{t}=Q_{\mathrm{entrada}}-Q_{\mathrm{saída}}.
+  \label{eq:volume-balance}
+\end{equation}
+Se o volume do compartimento varia com a pressão, e a complacência efetiva é aproximadamente constante, então:
+\begin{equation}
+  \diff{V}{t}=C_p\diff{P_p}{t}.
+\end{equation}
+Combinando as duas expressões:
+\begin{equation}
+  C_p\diff{P_p}{t}=\Qportin-\Qportout.
+  \label{eq:portal-ode}
+\end{equation}
+Essa é a equação de balanço do compartimento portal no SPLEEN.
+
+\section{Interpretação dos sinais}
+Se $\Qportin>\Qportout$, há acúmulo efetivo no compartimento e a pressão tende a subir. Se $\Qportin<\Qportout$, o compartimento tende a esvaziar e a pressão tende a cair. No equilíbrio:
+\begin{equation}
+  \Qportin=\Qportout.
+\end{equation}
+Equilíbrio não significa ausência de fluxo; significa que entrada e saída se igualam, de modo que o estado não muda naquele ponto.
+
+\section{Análise dimensional}
+A consistência de unidades é um teste fundamental. Se:
+\[
+[C_p]=\frac{\mathrm{L}}{\mathrm{mmHg}},\qquad
+\left[\diff{P_p}{t}\right]=\frac{\mathrm{mmHg}}{\mathrm{min}},
+\]
+então:
+\[
+\left[C_p\diff{P_p}{t}\right]=\frac{\mathrm{L}}{\mathrm{min}},
+\]
+a mesma unidade de vazão dos termos à direita. Uma equação dimensionalmente inconsistente indica erro de formulação ou de conversão.
+
+\chapter{Equações diferenciais ordinárias no modelo}
+
+\section{O que uma EDO descreve}
+Uma equação diferencial ordinária relaciona uma função desconhecida de uma única variável independente, frequentemente o tempo, às suas derivadas. Um sistema geral pode ser escrito como:
+\begin{equation}
+  \diff{\bm{x}}{t}=\bm{f}(t,\bm{x},\bm{u},\bm{\theta}),
+  \label{eq:general-ode}
+\end{equation}
+onde $\bm{x}$ é o vetor de estados, $\bm{u}$ o vetor de entradas e $\bm{\theta}$ o vetor de parâmetros.
+
+No SPLEEN, o vetor de estados é:
+\begin{equation}
+ \bm{x}(t)=
+ \begin{bmatrix}
+ Q_e(t)&Q_{\mathrm{int}}(t)&Q_b(t)&Q_{\mathrm{panc}}(t)&P_p(t)
+ \end{bmatrix}^{\mathsf T}.
+\end{equation}
+
+\section{Dinâmica de primeira ordem de cada leito}
+Uma forma simples de representar a aproximação gradual do fluxo a um alvo é:
+\begin{equation}
+  \diff{Q_i}{t}=\frac{Q_i^*(t)-Q_i(t)}{\tau_i s_\tau}.
+  \label{eq:flow-ode}
+\end{equation}
+$Q_i^*$ é o fluxo-alvo, $\tau_i$ a constante de tempo regional e $s_\tau$ um fator de escala temporal. A diferença $Q_i^*-Q_i$ determina a direção da mudança:
+\begin{itemize}
+  \item se $Q_i^*>Q_i$, o fluxo aumenta;
+  \item se $Q_i^*<Q_i$, o fluxo diminui;
+  \item se $Q_i^*=Q_i$, o fluxo não muda naquele instante.
+\end{itemize}
+
+\section{Solução para alvo constante}
+Se $Q_i^*$ for constante e $\tau_i s_\tau>0$, a solução analítica da equação \eqref{eq:flow-ode} é:
+\begin{equation}
+  Q_i(t)=Q_i^*+[Q_i(0)-Q_i^*]
+  \exp\left(-\frac{t}{\tau_i s_\tau}\right).
+  \label{eq:exponential}
+\end{equation}
+Após uma constante de tempo, a diferença inicial em relação ao alvo cai para aproximadamente $e^{-1}$ do valor inicial. A constante de tempo caracteriza a rapidez de resposta do modelo, não necessariamente um tempo fisiológico medido.
+
+\section{Acoplamento entre leitos e compartimento portal}
+Como a pressão portal retroage sobre o alvo regional, e os fluxos intestinais, esplênicos e pancreáticos alimentam o compartimento portal, o sistema é acoplado:
+\begin{align}
+  \diff{Q_i}{t}&=\frac{Q_i^*(\MAP,G,V,B,P_p)-Q_i}{\tau_i s_\tau},
+  \quad i\in\{e,\mathrm{int},b,\mathrm{panc}\},\\
+  C_p\diff{P_p}{t}&=Q_{\mathrm{int}}+Q_b+Q_{\mathrm{panc}}
+  -\max\left(0,\frac{P_p-P_{\mathrm{hv}}}{R_h}\right).
+\end{align}
+A solução de uma equação influencia as demais. Portanto, não se deve interpretar cada compartimento isoladamente quando há retroalimentação.
+
+\section{Fluxo-alvo e distribuição regional}
+Uma estratégia de modelagem é separar o fluxo total-alvo da distribuição entre órgãos:
+\begin{equation}
+  Q_{\mathrm{tot}}^*=F(\MAP,G,V,B,P_p),
+  \qquad
+  Q_i^*=Q_{\mathrm{tot}}^*\frac{w_i}{\sum_j w_j}.
+  \label{eq:target}
+\end{equation}
+Os pesos $w_i$ definem a participação relativa de cada território. A normalização garante:
+\begin{equation}
+  \sum_i Q_i^*=Q_{\mathrm{tot}}^*.
+\end{equation}
+Essa decomposição é conveniente para explorar redistribuição. Entretanto, os pesos e a função $F$ precisam de fundamentação empírica antes de receber interpretação quantitativa fisiológica.
+
+\section{Retroalimentação}
+Um mecanismo de retroalimentação ocorre quando uma variável do sistema modifica uma taxa ou um alvo que, por sua vez, altera a própria variável. No modelo, pressão portal elevada reduz o fluxo-alvo por uma função simplificada:
+\begin{equation}
+  f_p(P_p)=\max\{f_{\min},1-\gamma_p(P_p-P_{\mathrm{ref}})\}.
+\end{equation}
+O sinal negativo expressa uma hipótese de feedback inibitório. O formato linear truncado é escolhido por simplicidade e estabilidade computacional, não por derivação de uma curva fisiológica universal.
+
+\chapter{Oxigênio: do fluxo à oferta tecidual}
+
+\section{Fluxo não é sinônimo de oxigenação}
+O fluxo sanguíneo transporta oxigênio, mas a oferta depende também do conteúdo de oxigênio no sangue. Uma medida clássica é a entrega de oxigênio:
+\begin{equation}
+  \Do=Q\,C_{aO_2}.
+  \label{eq:oxygen-delivery}
+\end{equation}
+Se $Q$ estiver em L/min e $C_{aO_2}$ em mL O$_2$/L, o resultado será mL O$_2$/min.
+
+O conteúdo arterial de oxigênio é frequentemente aproximado por:
+\begin{equation}
+  C_{aO_2}=1{,}34\,Hb\,S_{aO_2}+0{,}003\,P_{aO_2},
+\end{equation}
+com unidades convencionais de Hb em g/dL, saturação como fração e pressão parcial em mmHg, resultando em mL O$_2$/dL. A equação destaca a contribuição dominante da hemoglobina ligada ao oxigênio e a contribuição menor do oxigênio dissolvido.
+
+\section{Conversão de unidades}
+Se $C_{aO_2}=18{,}5$ mL/dL, então:
+\begin{equation}
+  18{,}5\ \frac{\mathrm{mL}}{\mathrm{dL}}
+  \times 10\ \frac{\mathrm{dL}}{\mathrm{L}}
+  =185\ \frac{\mathrm{mL}}{\mathrm{L}}.
+\end{equation}
+Logo, um fluxo em L/min multiplicado por 185 mL/L produz entrega em mL/min. O valor 18,5 usado no protótipo é uma hipótese fixa ilustrativa; em fisiologia real, o conteúdo arterial depende de hemoglobina, saturação e outros fatores.
+
+\section{Princípio de Fick}
+O princípio de Fick relaciona consumo de oxigênio ao fluxo e à diferença arteriovenosa de conteúdo:
+\begin{equation}
+  \dot V O_2=Q(C_{aO_2}-C_{vO_2}).
+\end{equation}
+A entrega de oxigênio não é igual ao consumo. Um tecido pode extrair uma fração variável do oxigênio entregue. Para estudar hipóxia tecidual, fluxo e entrega isolados são insuficientes: seriam necessários dados ou submodelos de extração, consumo metabólico, microcirculação e heterogeneidade espacial.
+
+\section{Interpretação do indicador hepático no SPLEEN}
+O protótipo calcula um indicador simplificado:
+\begin{equation}
+  D_{O_2,\mathrm{hep}}=
+  (\Qportout+Q_{HA})\,185.
+\end{equation}
+O termo $Q_{HA}$ representa uma contribuição arterial hepática agregada hipotética. O uso da soma portal-hepática e arterial é uma aproximação de oferta global, não um modelo de distribuição sinusoidal nem uma estimativa individual de oxigenação celular. A resposta arterial hepática tampão é um fenômeno fisiológico reconhecido, mas a função algébrica simplificada implementada no protótipo não é uma representação validada desse mecanismo.
+
+\chapter{Da fisiologia à implementação numérica}
+
+\section{Por que precisamos de métodos numéricos}
+Sistemas acoplados e não lineares podem não possuir solução analítica simples. Um computador aproxima a trajetória em instantes discretos $t_n=n\Delta t$. O passo temporal $\Delta t$ controla a resolução da integração.
+
+\section{Método de Euler explícito}
+Para uma EDO $\diff{x}{t}=f(t,x)$:
+\begin{equation}
+  x_{n+1}=x_n+\Delta t\,f(t_n,x_n).
+\end{equation}
+Aplicado aos fluxos:
+\begin{equation}
+  Q_i^{n+1}=Q_i^n+\Delta t
+  \frac{Q_i^{*,n}-Q_i^n}{\tau_i s_\tau}.
+\end{equation}
+E ao compartimento portal:
+\begin{equation}
+  P_p^{n+1}=P_p^n+\frac{\Delta t}{C_p}
+  (\Qportin^n-\Qportout^n).
+\end{equation}
+O protótipo aplica salvaguardas de positividade aos estados. Truncar valores negativos evita resultados sem sentido físico, mas pode esconder instabilidade numérica ou uma formulação inadequada. O diagnóstico correto exige investigar a origem do problema.
+
+\section{Estabilidade e escala temporal}
+Para a equação linear $\diff{x}{t}=-x/\tau$, Euler explícito produz:
+\[
+x_{n+1}=\left(1-\frac{\Delta t}{\tau}\right)x_n.
+\]
+A estabilidade linear exige $|1-\Delta t/\tau|<1$, isto é, $0<\Delta t<2\tau$. Para evitar oscilações artificiais e obter boa precisão, frequentemente é necessário um passo menor. Em sistemas acoplados, a restrição depende dos autovalores da matriz Jacobiana local, e não apenas de uma constante de tempo.
+
+\section{Convergência temporal}
+Uma simulação deve ser repetida com passos progressivamente menores, por exemplo $\Delta t$, $\Delta t/2$ e $\Delta t/4$. Comparam-se as mesmas métricas no mesmo instante final. Para um método de primeira ordem, o erro global tende a diminuir aproximadamente na proporção do passo quando o regime assintótico de convergência é atingido.
+
+\section{Verificação, validação e calibração}
+São conceitos diferentes:
+\begin{description}
+  \item[Verificação:] o código resolve corretamente as equações especificadas?
+  \item[Calibração:] quais parâmetros tornam as previsões compatíveis com dados de referência?
+  \item[Validação:] o modelo reproduz adequadamente dados independentes para o uso pretendido?
+\end{description}
+Testes unitários, conservação de massa, positividade, equilíbrio basal e convergência são partes da verificação. Não demonstram, por si só, validade fisiológica.
+
+\chapter{Identificabilidade, sensibilidade e incerteza}
+
+\section{Sensibilidade local}
+Se uma saída $y$ depende de um parâmetro $p$, a sensibilidade local é:
+\begin{equation}
+  S_{y,p}=\pder{y}{p}.
+\end{equation}
+Uma elasticidade adimensional é:
+\begin{equation}
+  E_{y,p}=\pder{y}{p}\frac{p}{y},
+\end{equation}
+quando $y$ e $p$ são diferentes de zero. Ela descreve a variação percentual aproximada de $y$ diante de uma variação percentual pequena de $p$.
+
+\section{Matriz de sensibilidade e identificabilidade prática}
+Para várias saídas e parâmetros, constrói-se uma matriz Jacobiana:
+\begin{equation}
+  J_{kj}=\pder{y_k}{p_j}.
+\end{equation}
+Na prática, derivadas podem ser aproximadas por diferenças finitas. Uma matriz com colunas quase proporcionais indica que certos parâmetros produzem efeitos parecidos nas saídas consideradas. Isso dificulta distingui-los a partir dos dados disponíveis.
+
+A identificabilidade estrutural pergunta se parâmetros podem ser determinados unicamente mesmo com dados ideais e sem ruído. A identificabilidade prática pergunta se isso é possível com dados reais, finitos e ruidosos. Uma triagem local de posto e colinearidade é útil, mas não prova identificabilidade estrutural global.
+
+\section{Priors e análise bayesiana}
+Na inferência bayesiana:
+\begin{equation}
+  p(\bm{\theta}\mid\bm{y})\propto
+  p(\bm{y}\mid\bm{\theta})p(\bm{\theta}),
+\end{equation}
+onde $p(\bm{\theta})$ é a distribuição a priori, $p(\bm{y}\mid\bm{\theta})$ a verossimilhança e $p(\bm{\theta}\mid\bm{y})$ a distribuição posterior.
+
+O prior expressa conhecimento anterior ou uma hipótese probabilística. Intervalos uniformes arbitrados para permitir exploração computacional não devem ser apresentados como conhecimento fisiológico. A análise de sensibilidade aos priors verifica quanto os resultados dependem dessas escolhas.
+
+\section{Recuperação sintética e SBC}
+Um experimento de recuperação sintética escolhe parâmetros conhecidos, gera dados simulados e verifica se o procedimento inferencial consegue recuperar os parâmetros geradores. A simulação baseada em calibração (\textit{simulation-based calibration}, SBC) formal exige um procedimento bem definido: amostrar parâmetros do prior, gerar dados do modelo e obter amostras posteriores com um algoritmo inferencial cuja implementação e precisão sejam avaliadas.
+
+Ranks aproximadamente uniformes são esperados sob condições de calibração corretas. Entretanto, aproximações grosseiras, tamanho amostral baixo, degeneração de pesos ou erros no amostrador podem distorcer os ranks. O exercício preliminar do SPLEEN, baseado em amostragem por importância com candidatos limitados, deve ser tratado como diagnóstico exploratório no estilo SBC, não como SBC formal validada.
+
+\chapter{Extensão espacial: introdução às EDPs}
+
+\section{Quando uma EDP é necessária}
+Uma EDO compartimental acompanha estados agregados ao longo do tempo. Ela não informa onde, dentro de um órgão, o oxigênio está sendo transportado ou consumido. Se a pergunta passar a envolver gradientes espaciais, regiões de hipoperfusão, difusão ou geometria vascular, será necessário um modelo distribuído.
+
+\section{Advecção, difusão e reação}
+Uma equação genérica para transporte de uma concentração $C(\bm{x},t)$ pode ser escrita:
+\begin{equation}
+  \pder{C}{t}+\nabla\cdot(\bm{v}C)
+  =\nabla\cdot(D\nabla C)-R(C,\bm{x},t).
+  \label{eq:advection-diffusion-reaction}
+\end{equation}
+Os termos representam:
+\begin{itemize}
+  \item \textbf{Acumulação temporal:} $\pder{C}{t}$;
+  \item \textbf{Advecção:} transporte pelo movimento do fluido, $\nabla\cdot(\bm{v}C)$;
+  \item \textbf{Difusão:} espalhamento devido a gradientes de concentração, $\nabla\cdot(D\nabla C)$;
+  \item \textbf{Reação/consumo:} remoção metabólica, $R$.
+\end{itemize}
+A equação é uma estrutura conceitual. Para representar oxigênio em tecido, é necessário definir precisamente qual concentração está sendo modelada, meio vascular ou intersticial, unidades, propriedades efetivas, geometria e condições de contorno.
+
+\section{Condições de contorno e geometria}
+Uma EDP não fica definida apenas pela equação diferencial. São necessários domínio espacial, condição inicial e condições de contorno. Podem existir condições de concentração prescrita, fluxo prescrito ou interfaces entre compartimentos. Em tecidos perfundidos, a microvasculatura e a troca capilar precisam ser representadas de maneira compatível com a escala escolhida.
+
+\section{Discretização espacial}
+Métodos como diferenças finitas, volumes finitos e elementos finitos aproximam o domínio contínuo por uma malha. A escolha depende da geometria, conservação desejada, regularidade da solução e acoplamento entre transporte e reação. Devem ser realizados estudos de refinamento de malha e passo temporal. Uma solução visualmente suave não é evidência de convergência.
+
+\section{Relação entre modelo compartimental e espacial}
+Uma estratégia de desenvolvimento é manter o modelo de EDO como camada macroscópica e introduzir módulos espaciais apenas onde a pergunta exigir. Os fluxos de entrada e saída do módulo espacial devem ser compatíveis com os balanços compartimentais. Isso permite preservar a interpretação sistêmica sem simular todo o organismo em três dimensões.
+
+\chapter{Leitura guiada do modelo SPLEEN}
+
+\section{Estados e parâmetros implementados}
+A formulação técnica associada ao protótipo representa quatro fluxos arteriais regionais, uma pressão portal, uma resistência efetiva de drenagem, uma complacência portal e parâmetros de resposta temporal e retroalimentação. Os valores e coeficientes atuais são ilustrativos e não devem ser tratados como constantes fisiológicas de referência.
+
+\section{Equações principais}
+A dinâmica dos leitos é:
+\begin{equation}
+  \diff{Q_i}{t}=\frac{Q_i^*(\MAP,G,V,B,P_p)-Q_i}{\tau_i s_\tau}.
+\end{equation}
+A dinâmica portal é:
+\begin{equation}
+  C_p\diff{P_p}{t}=
+  Q_{\mathrm{int}}+Q_b+Q_{\mathrm{panc}}
+  -\max\left(0,\frac{P_p-P_{\mathrm{hv}}}{R_h}\right).
+\end{equation}
+O fluxo-alvo total é distribuído entre territórios por pesos normalizados:
+\begin{equation}
+  Q_i^*=Q_{\mathrm{tot}}^*\frac{w_i}{\sum_jw_j}.
+\end{equation}
+A versão exata, os limites e as funções auxiliares devem ser consultados no documento técnico \texttt{docs/model.tex} do repositório, que especifica a versão do código a que se refere.
+
+\section{Como interpretar uma simulação}
+Uma simulação deve ser lida como resposta condicional às hipóteses inseridas. Se a pressão portal aumenta, deve-se perguntar se isso decorre de maior fluxo de entrada, menor drenagem, alteração da resistência ou interação entre esses elementos. Se um órgão perde participação relativa, deve-se separar redistribuição percentual de queda absoluta do fluxo. Se a entrega de oxigênio muda, deve-se verificar se a alteração decorre do fluxo, do conteúdo arterial assumido ou de ambos.
+
+\section{Perguntas que o modelo atual não responde}
+O modelo atual não determina perfusão capilar real, oxigenação celular, necrose, isquemia individual, risco cirúrgico ou desfecho clínico. Também não prediz a resposta de um paciente específico. Essas perguntas exigiriam definição de desfechos, dados observacionais, medidas de referência, calibração, validação externa e avaliação ética e regulatória apropriada.
+
+\chapter{Roteiro de estudo e desenvolvimento}
+
+\section{Sequência recomendada}
+\begin{enumerate}
+  \item Revisar hemodinâmica: pressão, fluxo, resistência, complacência e autorregulação.
+  \item Dominar balanços de conservação e análise dimensional.
+  \item Resolver analiticamente a EDO de primeira ordem e interpretar constantes de tempo.
+  \item Implementar e verificar Euler explícito e um método de ordem superior.
+  \item Testar equilíbrio, positividade, conservação e convergência temporal.
+  \item Avaliar sensibilidade e identificabilidade antes de estimar parâmetros.
+  \item Definir quais dados fisiológicos poderiam calibrar cada parâmetro.
+  \item Somente então especificar um módulo espacial com EDP, geometria e condições de contorno.
+\end{enumerate}
+
+\section{Dados que seriam úteis para evolução}
+A escolha de dados depende do objetivo e da disponibilidade real. Em termos gerais, podem ser relevantes: pressão arterial e venosa com marcação temporal; pressão intra-abdominal ou pneumoperitônio; débito cardíaco e variáveis de retorno venoso; medidas de fluxo regional por método validado; parâmetros laboratoriais necessários ao conteúdo arterial de oxigênio; e medidas de perfusão ou oxigenação tecidual com método e localização documentados.
+
+Cada variável deve ter unidade, método de aquisição, frequência temporal, população, contexto anestésico-cirúrgico, incerteza de medição e critérios de qualidade. A disponibilidade de uma variável no prontuário não garante que ela seja adequada para calibração.
+
+\section{Boas práticas científicas}
+\begin{itemize}
+  \item Registrar a origem de cada equação e parâmetro.
+  \item Distinguir dado medido, parâmetro estimado e valor ilustrativo.
+  \item Versionar código, dados, hipóteses e resultados.
+  \item Separar desenvolvimento, calibração e validação.
+  \item Evitar linguagem causal ou clínica além do que o desenho permite.
+  \item Documentar falhas, resultados negativos e limitações.
+\end{itemize}
+
+\chapter*{Glossário}
+\addcontentsline{toc}{chapter}{Glossário}
+\begin{description}
+  \item[Advecção] Transporte de uma substância pelo movimento de um fluido.
+  \item[Complacência] Variação de volume associada a uma variação de pressão.
+  \item[EDO] Equação diferencial ordinária; descreve variação em uma variável independente, como o tempo.
+  \item[EDP] Equação diferencial parcial; descreve variações em mais de uma variável independente, frequentemente espaço e tempo.
+  \item[Identificabilidade] Possibilidade de distinguir ou determinar parâmetros a partir das saídas do modelo.
+  \item[Perfusão] Passagem de sangue por um leito vascular ou tecido.
+  \item[Resistência vascular] Relação efetiva entre gradiente de pressão e fluxo.
+  \item[Verificação] Avaliação de que a implementação computacional resolve corretamente as equações propostas.
+  \item[Validação] Avaliação de adequação do modelo em relação a dados independentes e ao uso pretendido.
+\end{description}
+
+\backmatter
+\chapter*{Referências para aprofundamento}
+\addcontentsline{toc}{chapter}{Referências para aprofundamento}
+As referências abaixo são pontos de partida para estudo; a formulação do protótipo não deve ser considerada automaticamente validada por elas.
+\begin{enumerate}
+  \item Guyton, A. C.; Hall, J. E. \textit{Tratado de Fisiologia Médica}. Seções de circulação, microcirculação e controle do fluxo sanguíneo.
+  \item Boron, W. F.; Boulpaep, E. L. \textit{Medical Physiology}. Capítulos de fisiologia cardiovascular, gastrointestinal e transporte de gases.
+  \item West, J. B.; Luks, A. M. \textit{West's Respiratory Physiology}. Fundamentos de transporte de oxigênio e conteúdo arterial.
+  \item Keener, J.; Sneyd, J. \textit{Mathematical Physiology}. Modelagem matemática de sistemas fisiológicos.
+  \item Quarteroni, A.; Sacco, R.; Saleri, F. \textit{Numerical Mathematics}. Fundamentos de métodos numéricos.
+  \item Raue, A. et al. Structural and practical identifiability analysis of partially observed dynamical models by exploiting the profile likelihood. \textit{Bioinformatics}, 2009.
+  \item Talts, S. et al. Validating Bayesian inference algorithms with simulation-based calibration. \textit{arXiv}, 2018.
+\end{enumerate}
+
+\begin{tcolorbox}[colback=red!2,colframe=red!45!black,title=Nota final]
+O modelo é uma hipótese matemática executável sobre parte de um sistema fisiológico complexo. A utilidade científica depende da clareza das hipóteses, da consistência dimensional, da verificação numérica e, sobretudo, da comparação com dados independentes adequados. Resultados de simulação não devem ser convertidos diretamente em afirmações clínicas.
+\end{tcolorbox}
+
+\end{document}
