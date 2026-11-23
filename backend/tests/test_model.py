@@ -214,3 +214,66 @@ def test_gastric_portal_fraction_one_routes_all_gastric_flow_to_portal():
     assert math.isclose(result["gastric_portal_inflow_l_min"],
                         result["regional_flow_l_min"]["stomach"], abs_tol=1e-6)
     assert result["gastric_systemic_return_l_min"] == 0
+
+
+def test_splenic_territory_windkessel_baseline_is_conservative():
+    result = final_state(Parameters(duration_min=20, dt_min=0.025))
+    territories = result["splenic_territories"]
+    assert len(territories) == 3
+    assert math.isclose(sum(x["arterial_inflow_l_min"] for x in territories),
+                        result["regional_flow_l_min"]["spleen"], abs_tol=1e-6)
+    assert math.isclose(sum(x["venous_outflow_l_min"] for x in territories),
+                        result["regional_flow_l_min"]["spleen"], abs_tol=1e-6)
+    assert all(math.isclose(x["pressure_mmhg"], 10.0, abs_tol=1e-6) for x in territories)
+
+
+def test_splenic_resistance_asymmetry_creates_transient_pressure_and_outflow_redistribution():
+    result = simulate(Request(parameters=Parameters(
+        duration_min=8, dt_min=0.01,
+        splenic_resistance_superior=2.0,
+        splenic_resistance_middle=1.0,
+        splenic_resistance_inferior=.5
+    )))
+    first, last = result["timeline"][0], result["timeline"][-1]
+    assert first["splenic_territories"][0]["pressure_mmhg"] == 10.0
+    assert last["splenic_territories"][0]["pressure_mmhg"] > last["splenic_territories"][2]["pressure_mmhg"]
+    assert math.isclose(sum(x["arterial_inflow_l_min"] for x in last["splenic_territories"]),
+                        last["regional_flow_l_min"]["spleen"], abs_tol=2e-6)
+    assert math.isclose(sum(x["venous_outflow_l_min"] for x in last["splenic_territories"]),
+                        last["splenic_venous_outflow_l_min"], abs_tol=1e-6)
+
+
+def test_splenic_venous_outflow_drives_portal_inflow_without_double_counting():
+    result = final_state(Parameters(duration_min=10, dt_min=0.025,
+                                    splenic_resistance_superior=1.8))
+    regional = result["regional_flow_l_min"]
+    expected = (result["gastric_portal_inflow_l_min"] + regional["intestine"]
+                + regional["pancreas"] + result["splenic_venous_outflow_l_min"])
+    assert math.isclose(result["portal_inflow_l_min"], expected, abs_tol=1e-6)
+
+
+def test_distributed_vascular_profiles_have_monotonic_pressure_and_serial_flow():
+    result = final_state(Parameters(duration_min=20, dt_min=0.025))
+    for territory in result["splenic_territories"]:
+        arterial = territory["arterial_path"]
+        venous = territory["venous_path"]
+        arterial_pressures = [node["pressure_mmhg"] for node in arterial]
+        venous_pressures = [node["pressure_mmhg"] for node in venous]
+        assert all(a >= b for a, b in zip(arterial_pressures, arterial_pressures[1:]))
+        assert all(a >= b for a, b in zip(venous_pressures, venous_pressures[1:]))
+        assert math.isclose(arterial_pressures[-1], territory["pressure_mmhg"], abs_tol=1e-6)
+        assert math.isclose(venous_pressures[-1], 5.0, abs_tol=1e-6)
+        assert all(math.isclose(node["flow_l_min"], territory["arterial_inflow_l_min"], abs_tol=1e-6)
+                   for node in arterial)
+        assert all(math.isclose(node["flow_l_min"], territory["venous_outflow_l_min"], abs_tol=1e-6)
+                   for node in venous)
+
+
+def test_distributed_pressure_profile_endpoints_follow_effective_arterial_and_venous_pressures():
+    result = final_state(Parameters(duration_min=5, dt_min=0.025, map_mmhg=70))
+    for territory in result["splenic_territories"]:
+        assert math.isclose(territory["arterial_path"][0]["pressure_mmhg"],
+                            result["splenic_arterial_source_pressure_mmhg"], abs_tol=1e-6)
+        assert math.isclose(territory["arterial_path"][-1]["pressure_mmhg"],
+                            territory["pressure_mmhg"], abs_tol=1e-6)
+        assert math.isclose(territory["venous_path"][-1]["pressure_mmhg"], 5.0, abs_tol=1e-6)

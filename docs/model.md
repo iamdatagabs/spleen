@@ -260,3 +260,30 @@ A malha de superfície é procedural e paramétrica, não derivada de TC/RM, atl
 
 
 A cena tridimensional requer WebGL e carrega Three.js 0.180.0 por CDN (jsDelivr). Se WebGL estiver indisponível, os controles e resultados do simulador compartimental permanecem independentes da visualização 3D. A implementação depende de conexão externa para carregar a biblioteca visual.
+
+
+## 20. Dinâmica transitória dos territórios esplênicos — v0.8.0
+
+A extensão substitui a partição puramente algébrica por três compartimentos vasculares em paralelo, cada um com resistência de saída e complacência própria (modelo Windkessel de um compartimento). O fluxo arterial esplênico agregado é distribuído igualmente entre os três territórios como hipótese inicial; as resistências relativas modificam a drenagem venosa e a pressão armazenada em cada compartimento.
+
+Para o território $i$:
+
+$$
+C_i\frac{dP_i}{dt}=Q_{in,i}-Q_{out,i},\qquad
+Q_{out,i}=\max\left(0,\frac{P_i-P_v}{R_0R_i^*}\right)
+$$
+
+com $Q_{in,i}=Q_{spl}/3$, $P_v=5$ mmHg, $R_0=5/0,052$ mmHg/(L/min), e $C_i=0,02$ L/mmHg. Os parâmetros $R_i^*$ são adimensionais, configuráveis entre 0,5 e 2,0. Os valores de $R_0$ e $C_i$ são escolhidos para manter o equilíbrio ilustrativo de 10 mmHg no cenário basal; não são estimativas fisiológicas.
+
+A soma das entradas territoriais é igual ao fluxo arterial esplênico. A soma das saídas venosas territoriais passa a compor o retorno portal, evitando contar o fluxo arterial esplênico como se fosse drenagem venosa instantânea. A diferença instantânea entre entrada e saída representa armazenamento/liberação de volume no compartimento complacente.
+
+A integração usa Euler explícito com o mesmo passo temporal do modelo global. A estabilidade e convergência devem ser verificadas em refinamentos de passo, especialmente nos extremos de resistência e complacência. O modelo não representa anatomia segmentar real, vasos individuais, pressão transmural, autorregulação, fluxo pulsátil ou microcirculação. Trata-se de uma extensão exploratória de ordem reduzida, sem aplicação clínica.
+
+
+## 21. Perfis distribuídos de pressão ao longo dos ramos — v0.9.0
+
+Cada território expõe perfis nodais simplificados de pressão no trajeto arterial e venoso. O trajeto arterial liga uma pressão de fonte efetiva (derivada da PAM e dos índices abstratos já usados pelo modelo) à pressão do compartimento complacente. O trajeto venoso liga a pressão do compartimento à pressão venosa hepática assumida de 5 mmHg. O fluxo é considerado constante ao longo de cada caminho serial, sem perdas laterais ou armazenamento nos segmentos individuais.
+
+Cada caminho contém três quedas de pressão com frações fixas (25%, 50%, 25%) para produzir nós intermediários visualizáveis. Essas frações não representam calibres, comprimentos, resistências segmentares ou anatomia medidos. A pressão nodal intermediária é uma interpolação determinística entre as condições de contorno, não a solução de uma rede vascular anatômica. O modelo continua com armazenamento complacente concentrado no compartimento territorial; não resolve equações de momentum, fluxo pulsátil, bifurcações acopladas, colaterais, microcirculação ou CFD.
+
+Os perfis servem como camada de visualização e inspeção de gradientes, mantendo explícita a diferença entre variáveis de estado (pressão territorial e fluxos) e nós interpolados para representação espacial.
