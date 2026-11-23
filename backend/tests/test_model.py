@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from main import Parameters, Request, simulate
+from main import Parameters, Request, simulate, sensitivity
 
 def final_state(payload):
     return simulate(Request(parameters=payload))["timeline"][-1]
@@ -39,3 +39,20 @@ def test_time_step_refinement_is_consistent():
         assert abs(coarse["regional_flow_l_min"][key] - fine["regional_flow_l_min"][key]) < 0.005
     assert abs(coarse["portal_pressure_mmhg"] - fine["portal_pressure_mmhg"]) < 0.05
     assert abs(medium["portal_pressure_mmhg"] - fine["portal_pressure_mmhg"]) < 0.02
+
+def test_sensitivity_returns_all_model_parameters_and_metrics():
+    result = sensitivity(Request(parameters=Parameters(duration_min=20)))
+    assert result["method"] == "one_at_a_time_local_sensitivity"
+    assert {row["parameter"] for row in result["results"]} == {
+        "portal_compliance", "hepatic_resistance", "portal_feedback_gain", "tau_scale"
+    }
+    for row in result["results"]:
+        assert set(row["metrics"]) == {
+            "total_flow_l_min", "portal_pressure_mmhg",
+            "hepatic_portal_outflow_l_min", "hepatic_oxygen_delivery_ml_min"
+        }
+
+def test_default_parameters_preserve_equilibrium():
+    result = final_state(Parameters())
+    assert math.isclose(result["portal_pressure_mmhg"], 10.0, abs_tol=1e-8)
+    assert math.isclose(result["portal_inflow_l_min"], result["hepatic_portal_outflow_l_min"], abs_tol=1e-8)
