@@ -72,3 +72,20 @@
 .capillary-controls input{width:100%;accent-color:var(--teal)}
 .capillary-controls span{font-variant-numeric:tabular-nums;color:var(--teal);text-align:right}
 .capillary-controls small{font-size:9px;color:var(--muted)}
+
+
+/* Tissue oxygen OAT sensitivity workspace */
+.tissue-sensitivity{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:10px;background:#0a1824}
+.sensitivity-heading,.sensitivity-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sensitivity-heading b{display:block;color:var(--text)}
+.sensitivity-heading small,.sensitivity-table td small{display:block;color:var(--muted);font-size:11px}
+.sensitivity-actions{justify-content:flex-start;margin:12px 0}
+.sensitivity-baseline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px;margin:12px 0;border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:12px}
+.sensitivity-baseline strong{color:var(--teal);font-size:17px}
+.table-scroll{overflow-x:auto}
+.sensitivity-table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.sensitivity-table th,.sensitivity-table td{padding:10px 9px;border-bottom:1px solid var(--line);text-align:right}
+.sensitivity-table th:first-child,.sensitivity-table td:first-child{text-align:left}
+.sensitivity-table th{color:var(--muted);font-weight:600}
+.sensitivity-table td strong{color:var(--text)}
+@media(max-width:720px){.sensitivity-baseline{align-items:flex-start;flex-direction:column;gap:4px}.sensitivity-table{font-size:11px}}
