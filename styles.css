@@ -65,3 +65,10 @@
 .tissue-oxygen-panel{grid-template-columns:repeat(2,minmax(0,1fr))}
 .tissue-oxygen-panel>div{min-width:0}
 @media(max-width:600px){.tissue-oxygen-panel{grid-template-columns:1fr}}
+
+.capillary-controls{display:grid;gap:8px;margin:0 0 14px;padding:12px;background:#0b1925;border:1px solid var(--line);border-radius:8px}
+.capillary-controls>b{font-size:11px;color:var(--muted)}
+.capillary-controls label{display:grid;grid-template-columns:90px 1fr 44px;align-items:center;gap:10px;font-size:10px;color:var(--muted)}
+.capillary-controls input{width:100%;accent-color:var(--teal)}
+.capillary-controls span{font-variant-numeric:tabular-nums;color:var(--teal);text-align:right}
+.capillary-controls small{font-size:9px;color:var(--muted)}
