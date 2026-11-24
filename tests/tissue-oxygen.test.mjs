@@ -42,3 +42,23 @@ test("halving the timestep gives a close solution at matched simulation time",()
   const b=solveTissueOxygen(equal,{durationSeconds:120,dt:.5});
   assert.ok(Math.abs(a.stats.meanPO2-b.stats.meanPO2)<0.03);
 });
+
+test("higher regional capillary-density index raises mean tissue pO2",()=>{
+  const sparse=solveTissueOxygen(equal.map(t=>({...t,capillaryDensity:.5})),{durationSeconds:240});
+  const dense=solveTissueOxygen(equal.map(t=>({...t,capillaryDensity:1.5})),{durationSeconds:240});
+  assert.ok(dense.stats.meanPO2>sparse.stats.meanPO2);
+  assert.ok(dense.stats.meanCapillaryDensityIndex>sparse.stats.meanCapillaryDensityIndex);
+});
+
+test("exchange-distance scale and spatial distance field are explicit",()=>{
+  const short=solveTissueOxygen(equal,{durationSeconds:240,exchangeDistanceScaleMm:20});
+  const long=solveTissueOxygen(equal,{durationSeconds:240,exchangeDistanceScaleMm:80});
+  assert.ok(long.stats.meanPO2>short.stats.meanPO2);
+  assert.ok(short.stats.meanExchangeDistanceMm>0);
+  assert.ok(short.exchangeDistanceField instanceof Float32Array);
+});
+
+test("invalid capillary-density index and exchange-distance scale are rejected",()=>{
+  assert.throws(()=>solveTissueOxygen([{arterialInflow:.052,capillaryDensity:0},...equal.slice(1)]),RangeError);
+  assert.throws(()=>solveTissueOxygen(equal,{exchangeDistanceScaleMm:0}),RangeError);
+});
