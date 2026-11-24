@@ -56,7 +56,9 @@ POST /api/v1/simulations. Entrada: model_version, parameters, duration_min, dt_m
 - RNF-11: declarar unidades e condições de contorno de fluxo difusivo normal nulo.
 - RNF-12: verificar limite de estabilidade do integrador explícito e convergência temporal por redução do passo.
 - RNF-13: identificar parâmetros demonstrativos e impedir interpretação dos resultados como avaliação clínica de hipóxia ou isquemia.
-\n\n## Requisitos de heterogeneidade microvascular — v1.4
+
+
+## Requisitos de heterogeneidade microvascular — v1.4
 - RF-18: calcular campo espacial de índice relativo de densidade capilar a partir de parâmetros territoriais explícitos.
 - RF-19: calcular distância efetiva ponderada aos centros computacionais de troca e modular a oferta perfusional por atenuação espacial.
 - RF-20: exibir no painel 3D a densidade capilar relativa média e a distância média aos centros efetivos de troca.
