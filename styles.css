@@ -60,3 +60,4 @@
 .tissue-oxygen-panel b{display:block;margin-top:6px;color:var(--teal);font-size:18px;font-variant-numeric:tabular-nums}
 .tissue-oxygen-panel small{grid-column:1/-1;font-size:9px}
 @media(max-width:600px){.tissue-oxygen-panel{grid-template-columns:1fr}}
+\n/* Microvascular heterogeneity v1.4 */\n.tissue-oxygen-panel{grid-template-columns:repeat(2,minmax(0,1fr))}\n.tissue-oxygen-panel>div{min-width:0}\n@media(max-width:600px){.tissue-oxygen-panel{grid-template-columns:1fr}}\n
