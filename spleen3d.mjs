@@ -68,6 +68,7 @@ if(host&&canvas){
       const total=Number(state?.regionalFlows?.spleen??.156),dynamic=state?.splenicTerritories;
       territoryState=dynamic?.length===3?dynamic:distributeTerritoryFlow(total,resistances).map((q,i)=>({arterialInflow:q,venousOutflow:q,pressure:10,relativeResistance:resistances[i]}));
       territoryState=calculateTerritoryOxygen(territoryState);
+      territoryState=territoryState.map((d,i)=>({...d,capillaryDensity:Number(document.getElementById(["capDensitySuperior","capDensityMiddle","capDensityInferior"][i])?.value??1)}));
       updateOxygenSurface();
       territories.forEach((t,i)=>{
         const d=territoryState[i],visual=territoryVisualMetrics({arterialInflow:Number(d.arterialInflow),venousOutflow:Number(d.venousOutflow),pressure:Number(d.pressure)}),frac=total>0?Number(d.arterialInflow)/total:1/3;
@@ -84,6 +85,10 @@ if(host&&canvas){
         if(pathEl&&ap?.length===4&&vp?.length===4)pathEl.textContent="P arterial: "+fmt(ap[0].pressure_mmhg)+" → "+fmt(ap[3].pressure_mmhg)+" · P venosa: "+fmt(vp[0].pressure_mmhg)+" → "+fmt(vp[3].pressure_mmhg)+" mmHg";
       });
     };
+    ["Superior","Middle","Inferior"].forEach(name=>{
+      const input=document.getElementById("capDensity"+name),value=document.getElementById("capDensity"+name+"Value");
+      input?.addEventListener("input",()=>{if(value)value.textContent=Number(input.value).toFixed(1).replace(".",",")+"×";updateCompartments();});
+    });
     ["Superior","Middle","Inferior"].forEach((name,i)=>{const input=document.getElementById("r"+name);input?.addEventListener("input",()=>{resistances[i]=Number(input.value);window.dispatchEvent(new CustomEvent("spleen-territory-resistance-change"));updateCompartments();});});
     document.getElementById("resetTerritories")?.addEventListener("click",()=>{resistances=[1,1,1];["Superior","Middle","Inferior"].forEach(name=>{const input=document.getElementById("r"+name);if(input)input.value="1";});window.dispatchEvent(new CustomEvent("spleen-territory-resistance-change"));updateCompartments();});
     window.updateSpleenSpatialState=next=>{state=next;updateCompartments();};updateCompartments();
