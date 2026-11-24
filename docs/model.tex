@@ -150,4 +150,14 @@ O termo difusivo usa $D$ em mm$^2$/s; $k_{perf}$ tem unidade s$^{-1}$; $V_{max}$
 A discretização é feita por diferenças finitas em três dimensões e integração temporal de Euler explícito. O passo é limitado por estimativas de estabilidade dos termos difusivo e reativo. O campo é interpolado trilinearmente nos vértices da superfície paramétrica para a visualização.
 
 Esta formulação é fenomenológica e de ordem reduzida. Não resolve vasos individuais, advecção intravascular, hematócrito, curva de dissociação da hemoglobina, extração capilar explícita ou metabolismo celular medido. Os parâmetros são demonstrativos; o campo não constitui diagnóstico de hipóxia/isquemia nem deve orientar decisões clínicas. A camada v1.3 passa a fornecer o campo espacial de pO$_2$; a camada v1.2 de entrega convectiva $DO_2$ permanece como indicador distinto.
+
+\section{Heterogeneidade microvascular fenomenológica — v1.4}
+A oferta espacial é modulada por um índice regional de densidade relativa $\rho_i$ e por uma distância efetiva $d(\mathbf{x})$ aos centros computacionais de troca:
+\[
+k_{perf}^{1.4}(\mathbf{x})=k_0
+\left(\sum_i w_i(\mathbf{x})q_i\right)
+\left(\sum_i w_i(\mathbf{x})\rho_i\right)
+\exp\left(-\frac{d(\mathbf{x})}{L_{ex}}\right).
+\]
+Os pesos gaussianos $w_i$ são normalizados, $q_i=Q_i/Q_{ref}$ é o fluxo relativo e $L_{ex}$ é uma escala de atenuação em mm. Os centros são abstrações computacionais, não capilares segmentados. $\rho_i$ é um índice adimensional, não densidade histológica; $L_{ex}$ não é distância de difusão medida. A extensão permanece fenomenológica e não validada.
 \end{document}
