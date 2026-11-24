@@ -37,10 +37,10 @@ if(host&&canvas){
       }
       colors.needsUpdate=true;
       const stats=tissueOxygenField.stats;
-      const mean=document.getElementById("tissuePO2Mean"),range=document.getElementById("tissuePO2Range"),time=document.getElementById("tissuePO2Time");
+      const mean=document.getElementById("tissuePO2Mean"),range=document.getElementById("tissuePO2Range"),time=document.getElementById("tissuePO2Time"),density=document.getElementById("capillaryDensityMean"),distance=document.getElementById("exchangeDistanceMean");
       if(mean)mean.textContent=stats.meanPO2.toFixed(1).replace(".",",")+" mmHg";
       if(range)range.textContent=stats.minPO2.toFixed(1).replace(".",",")+"–"+stats.maxPO2.toFixed(1).replace(".",",")+" mmHg";
-      if(time)time.textContent=stats.simulatedSeconds.toFixed(0)+" s · "+stats.steps+" passos";
+      if(time)time.textContent=stats.simulatedSeconds.toFixed(0)+" s · "+stats.steps+" passos";\n      if(density)density.textContent=stats.meanCapillaryDensityIndex.toFixed(2).replace(".",",")+" × ref.";\n      if(distance)distance.textContent=stats.meanExchangeDistanceMm.toFixed(1).replace(".",",")+" mm";
     };
     territories.forEach(t=>{const zone=new THREE.Mesh(new THREE.SphereGeometry(t.radius,32,24),new THREE.MeshPhysicalMaterial({color:t.color,transparent:true,opacity:.25,roughness:.25,metalness:.05,depthWrite:false,emissive:t.color,emissiveIntensity:.12}));zone.position.copy(t.center);zone.scale.set(1.2,.85,.58);organ.add(zone);zoneMeshes.push(zone);const node=new THREE.Mesh(new THREE.SphereGeometry(.075,20,16),new THREE.MeshStandardMaterial({color:"#58d6c2",emissive:"#58d6c2",emissiveIntensity:.35,roughness:.3}));node.position.copy(t.center).add(new THREE.Vector3(0,0,.12));organ.add(node);pressureNodes.push(node);});
     const tube=(points,radius,color,parent=vascular)=>{const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const material=new THREE.MeshStandardMaterial({color,roughness:.34,metalness:.04,emissive:color,emissiveIntensity:.18});const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,48,radius,10,false),material);parent.add(mesh);return{mesh,curve,material};};
