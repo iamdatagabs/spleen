@@ -352,3 +352,32 @@ em que $w_i$ são pesos gaussianos normalizados, $q_i=Q_i/Q_{ref}$ é o fluxo ar
 
 ### Testes v1.4
 A suíte verifica resposta monotônica do pO₂ ao índice de densidade, resposta à escala de distância efetiva, geração dos campos espaciais e rejeição de parâmetros fora do domínio declarado.
+
+
+## 17. Triagem OAT da sensibilidade do campo de pO₂ — v1.5.0
+
+A interface oferece uma análise one-at-a-time (OAT) do solucionador tridimensional de reação-difusão. O cenário basal usa o mesmo conjunto de três territórios e índices regionais de densidade capilar selecionados no painel espacial. Cinco parâmetros são perturbados individualmente:
+
+| Parâmetro | Unidade do modelo | Perturbação exploratória |
+|---|---|---:|
+| Difusão efetiva (D) | mm²/s | −25% / +25% |
+| Taxa perfusional basal | s⁻¹ | −25% / +25% |
+| Consumo máximo (Vmax) | mmHg/s | −25% / +25% |
+| Constante de semissaturação (Km) | mmHg | −25% / +25% |
+| Escala de distância de troca | mm | −25% / +25% |
+
+Para cada parâmetro, o solucionador é executado nos cenários baixo e alto, mantendo os demais parâmetros e as entradas regionais constantes. São reportados pO₂ média, mínima e máxima e a amplitude espacial. A resposta relativa centralizada da média é:
+
+\[
+S_{\mathrm{OAT}} = 100\,\frac{\bar P_{O_2}(p_+) - \bar P_{O_2}(p_-)}{\bar P_{O_2,0}}
+\]
+
+A elasticidade finita normalizada é:
+
+\[
+E_p \approx \frac{\bar P_{O_2}(p_+) - \bar P_{O_2}(p_-)}{\bar P_{O_2,0}}\,\frac{1}{2\delta}, \qquad \delta=0.25
+\]
+
+A interface exporta os resultados em CSV. A análise é determinística para cenário e parâmetros fixos. Os testes verificam quantidade de parâmetros, valores finitos, repetibilidade e validação da amplitude de perturbação.
+
+**Limitações:** OAT não mede interações, não estima incerteza conjunta, não calibra parâmetros e não estabelece identificabilidade. A perturbação de ±25% é uma escolha de engenharia para exploração computacional, não uma faixa fisiológica. Os coeficientes continuam ilustrativos e os resultados não devem orientar decisões clínicas.
