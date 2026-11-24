@@ -336,3 +336,19 @@ Este é um modelo fenomenológico reduzido: não resolve árvore vascular, hemat
 
 ### Verificações v1.3
 Testes cobrem resposta à oferta perfusional, gradiente espacial, amostragem trilinear, rejeição de passos instáveis/entradas inválidas e sensibilidade à redução do passo temporal.
+
+
+## 25. Heterogeneidade microvascular fenomenológica — v1.4.0
+
+A versão 1.4 adiciona dois campos espaciais auxiliares ao termo de oferta da equação de reação-difusão. Para cada território, o índice de densidade capilar relativa $\rho_i$ é adimensional e, por padrão, igual a 1. A distância $d(\mathbf{x})$ é a média ponderada das distâncias euclidianas aos três centros efetivos de troca definidos no modelo. O coeficiente de oferta passa a ser:
+
+\[
+k_{perf}^{1.4}(\mathbf{x}) = k_0 \left(\sum_i w_i(\mathbf{x}) q_i\right) \left(\sum_i w_i(\mathbf{x})\rho_i\right) \exp\left(-\frac{d(\mathbf{x})}{L_{ex}}\right),
+\]
+
+em que $w_i$ são pesos gaussianos normalizados, $q_i=Q_i/Q_{ref}$ é o fluxo arterial relativo, $k_0$ é a taxa basal e $L_{ex}$ é a escala espacial de atenuação em mm. O campo expõe a densidade relativa média e a distância média aos centros efetivos de troca.
+
+**Interpretação e limites:** os centros de troca são abstrações matemáticas e não representam capilares reais, pontos anatômicos medidos ou uma rede microvascular reconstruída. $\rho_i$ é um índice exploratório, não densidade em capilares/mm². $L_{ex}$ é uma escala de atenuação do modelo, não uma distância histológica de difusão. A formulação não substitui uma rede vascular explícita, dados de microscopia, histologia ou perfusão medida.
+
+### Testes v1.4
+A suíte verifica resposta monotônica do pO₂ ao índice de densidade, resposta à escala de distância efetiva, geração dos campos espaciais e rejeição de parâmetros fora do domínio declarado.

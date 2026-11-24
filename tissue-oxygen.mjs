@@ -1,6 +1,6 @@
-// Reduced-order 3D tissue oxygen reaction-diffusion model.
+// Reduced-order 3D tissue oxygen reaction-diffusion model with phenomenological microvascular heterogeneity.
 // Units: coordinates mm, time s, pO2 mmHg, D mm^2/s, rates 1/s or mmHg/s.
-// Perfusion is a distributed source term, not an explicit vascular-flow solver.
+// Exchange centers are computational abstractions, not segmented capillaries or measured anatomy.
 export const DEFAULT_TISSUE_OXYGEN = Object.freeze({
   nx: 25, ny: 17, nz: 11,
   xMin: -60, xMax: 60, yMin: -40, yMax: 40, zMin: -25, zMax: 25,
@@ -12,7 +12,8 @@ export const DEFAULT_TISSUE_OXYGEN = Object.freeze({
   initialPO2: 40,
   durationSeconds: 300,
   dt: 1,
-  territorySigmaMm: 17
+  territorySigmaMm: 17,
+  exchangeDistanceScaleMm: 45
 });
 
 const finitePositive = (value, name) => {
@@ -27,21 +28,26 @@ export function solveTissueOxygen(territories, options = {}) {
   for (const key of ["nx", "ny", "nz"]) {
     if (!Number.isInteger(p[key]) || p[key] < 3) throw new RangeError(key + " must be an integer >= 3");
   }
-  for (const key of ["diffusion", "baselinePerfusionRate", "arterialPO2", "vmax", "km", "durationSeconds", "dt", "territorySigmaMm"]) {
+  for (const key of ["diffusion", "baselinePerfusionRate", "arterialPO2", "vmax", "km", "durationSeconds", "dt", "territorySigmaMm", "exchangeDistanceScaleMm"]) {
     finitePositive(p[key], key);
   }
   if (!Number.isFinite(p.initialPO2) || p.initialPO2 < 0) throw new RangeError("initialPO2 must be finite and non-negative");
   const flows = territories.map((t, i) => {
     const q = Number(t.arterialInflow);
     if (!Number.isFinite(q) || q < 0) throw new RangeError("territory " + i + " flow must be finite and non-negative");
-    return q / 0.052;
+    const density = t.capillaryDensity === undefined ? 1 : Number(t.capillaryDensity);
+    if (!Number.isFinite(density) || density < 0.1 || density > 5) {
+      throw new RangeError("territory " + i + " capillaryDensity must be between 0.1 and 5");
+    }
+    return { flow: q / 0.052, density };
   });
   const dx = (p.xMax-p.xMin)/(p.nx-1), dy = (p.yMax-p.yMin)/(p.ny-1), dz = (p.zMax-p.zMin)/(p.nz-1);
   const diffusionLimit = 1 / (2*p.diffusion*(1/(dx*dx)+1/(dy*dy)+1/(dz*dz)));
-  const reactionLimit = 1 / (p.baselinePerfusionRate*Math.max(1,...flows) + p.vmax/p.km);
+  const reactionLimit = 1 / (p.baselinePerfusionRate*Math.max(1,...flows.map(v=>v.flow*v.density)) + p.vmax/p.km);
   const stableDt = Math.min(diffusionLimit, reactionLimit);
   if (p.dt > stableDt) throw new RangeError("dt exceeds the explicit stability bound " + stableDt);
   const count=p.nx*p.ny*p.nz, mask=new Uint8Array(count), rate=new Float32Array(count);
+  const capillaryDensityField=new Float32Array(count), exchangeDistanceField=new Float32Array(count);
   let active=0;
   const centers=[[-15,22,8],[2,0,12],[-18,-22,7]], sigma2=2*p.territorySigmaMm*p.territorySigmaMm;
   const index=(i,j,k)=>(k*p.ny+j)*p.nx+i;
@@ -50,12 +56,21 @@ export function solveTissueOxygen(territories, options = {}) {
     const ell=(x/60)**2+(y/40)**2+(z/25)**2, id=index(i,j,k);
     if(ell>1) continue;
     mask[id]=1;active++;
-    let weighted=0,weights=0;
+    let weightedFlow=0,weightedDensity=0,weightedDistance=0,weights=0;
     for(let r=0;r<3;r++){
       const c=centers[r],d2=(x-c[0])**2+(y-c[1])**2+(z-c[2])**2,w=Math.exp(-d2/sigma2);
-      weighted+=w*flows[r];weights+=w;
+      weightedFlow+=w*flows[r].flow;
+      weightedDensity+=w*flows[r].density;
+      weightedDistance+=w*Math.sqrt(d2);
+      weights+=w;
     }
-    rate[id]=p.baselinePerfusionRate*(weights?weighted/weights:0);
+    const density=weights?weightedDensity/weights:1;
+    const distance=weights?weightedDistance/weights:0;
+    capillaryDensityField[id]=density;
+    exchangeDistanceField[id]=distance;
+    // The exchange-distance attenuation is a phenomenological proxy, not a resolved capillary geometry.
+    const distanceFactor=Math.exp(-distance/p.exchangeDistanceScaleMm);
+    rate[id]=p.baselinePerfusionRate*(weights?weightedFlow/weights:0)*density*distanceFactor;
   }
   let current=new Float32Array(count),next=new Float32Array(count);
   for(let id=0;id<count;id++) if(mask[id]) current[id]=p.initialPO2;
@@ -80,12 +95,24 @@ export function solveTissueOxygen(territories, options = {}) {
     }
     const swap=current;current=next;next=swap;
   }
-  let sum=0,min=Infinity,max=-Infinity;
-  for(let id=0;id<count;id++)if(mask[id]){const v=current[id];sum+=v;if(v<min)min=v;if(v>max)max=v;}
+  let sum=0,min=Infinity,max=-Infinity,sumDensity=0,sumDistance=0;
+  for(let id=0;id<count;id++)if(mask[id]){
+    const v=current[id];sum+=v;if(v<min)min=v;if(v>max)max=v;
+    sumDensity+=capillaryDensityField[id];sumDistance+=exchangeDistanceField[id];
+  }
   return {
-    values:current,mask,grid:{nx:p.nx,ny:p.ny,nz:p.nz,xMin:p.xMin,xMax:p.xMax,yMin:p.yMin,yMax:p.yMax,zMin:p.zMin,zMax:p.zMax,dx,dy,dz},
-    stats:{meanPO2:sum/active,minPO2:min,maxPO2:max,activeVoxels:active,steps,dt,simulatedSeconds:steps*dt,stableDt},
-    parameters:{diffusion:p.diffusion,baselinePerfusionRate:p.baselinePerfusionRate,arterialPO2:p.arterialPO2,vmax:p.vmax,km:p.km,initialPO2:p.initialPO2,territorySigmaMm:p.territorySigmaMm}
+    values:current,mask,capillaryDensityField,exchangeDistanceField,
+    grid:{nx:p.nx,ny:p.ny,nz:p.nz,xMin:p.xMin,xMax:p.xMax,yMin:p.yMin,yMax:p.yMax,zMin:p.zMin,zMax:p.zMax,dx,dy,dz},
+    stats:{
+      meanPO2:sum/active,minPO2:min,maxPO2:max,activeVoxels:active,steps,dt,
+      simulatedSeconds:steps*dt,stableDt,meanCapillaryDensityIndex:sumDensity/active,
+      meanExchangeDistanceMm:sumDistance/active
+    },
+    parameters:{
+      diffusion:p.diffusion,baselinePerfusionRate:p.baselinePerfusionRate,arterialPO2:p.arterialPO2,
+      vmax:p.vmax,km:p.km,initialPO2:p.initialPO2,territorySigmaMm:p.territorySigmaMm,
+      exchangeDistanceScaleMm:p.exchangeDistanceScaleMm
+    }
   };
 }
 
