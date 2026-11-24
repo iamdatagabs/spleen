@@ -1,4 +1,4 @@
-# Modelo matemático — SPLEEN v1.3.0
+# Modelo matemático — SPLEEN v1.5.0
 
 ## 1. Escopo
 Modelo compartimental de ordem reduzida para explorar respostas qualitativas da perfusão esplâncnica e da dinâmica portal-hepática. Não é um gêmeo digital individual, não foi calibrado nem validado clinicamente.
