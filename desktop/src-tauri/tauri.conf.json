@@ -23,7 +23,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "msi"],
+    "targets": [
+      "nsis",
+      "msi"
+    ],
     "resources": [
       "spleen-api.exe"
     ],
@@ -32,6 +35,9 @@
         "displayLanguageSelector": false,
         "installMode": "currentUser"
       }
-    }
+    },
+    "icon": [
+      "icons/icon.ico"
+    ]
   }
 }
