@@ -9,13 +9,13 @@ GitHub Pages is enabled and the initial deployment completed successfully. Open 
 
 The latest commits may still be propagating while their Actions runs finish. [Deployment history](https://github.com/iamdatagabs/spleen/actions).
 
-## Current model — v1.6.0 anatomical 3D visualization and tissue oxygen sensitivity screening
+## Current model — v1.7.0 visceral anatomy refinement and tissue oxygen sensitivity screening
 - Four regional arterial flow compartments (stomach, intestine, spleen and pancreas).
 - Coupled portal pressure compartment with compliance and hepatic outflow resistance.
 - Simplified feedback from portal pressure to regional target flow.
 - Derived portal inflow, hepatic outflow, hepatic arterial flow and hepatic oxygen-delivery indicator.
 - Browser simulation, time-series chart, CSV export, and an interactive global-uncertainty workspace.
-- Interactive Three.js 3D spleen anatomy layer: irregular capsule/surface, hilar region, trabecular framework, schematic red- and white-pulp compartments, and a hierarchical vascular tree (splenic artery, hilar/segmental and trabecular branches, central/penicillar arterioles, capillary/sinusoidal beds, venules, trabecular veins and splenic vein). Three regional vascular territories remain coupled to the reduced-order hemodynamic state; arterial/venous branch thickness and particle transit respond to inflow/outflow. Anatomical layers can be toggled independently. The procedural anatomy is an educational schematic, not a segmented specimen, histological reconstruction, patient-specific anatomy, or spatial CFD.
+- Interactive Three.js 3D spleen anatomy layer: irregular capsule/surface with superior border notches, visceral gastric/renal/colic impressions, hilar region, gastrosplenic and splenorenal peritoneal reflections, trabecular framework, schematic red- and white-pulp compartments, and a hierarchical vascular tree (splenic artery, hilar/segmental and trabecular branches, central/penicillar arterioles, capillary/sinusoidal beds, venules, trabecular veins and splenic vein). Three regional vascular territories remain coupled to the reduced-order hemodynamic state; arterial/venous branch thickness and particle transit respond to inflow/outflow. Anatomical layers can be toggled independently. The procedural anatomy is an educational schematic, not a segmented specimen, histological reconstruction, patient-specific anatomy, or spatial CFD.
 - Browser-side LHS, Monte Carlo and exploratory four-chain MCMC with split-R-hat, approximate ESS and lag-1 autocorrelation diagnostics, with P05/P50/P95 summaries and CSV export.
 - Python API endpoints: `POST /api/v1/sensitivity`, `POST /api/v1/uncertainty` (LHS/Monte Carlo) and `POST /api/v1/mcmc` (requires observations).\n- Tissue oxygen OAT sensitivity workspace: centered sweeps at −25%/+25% for effective diffusion, baseline perfusion, saturable consumption (Vmax/Km) and exchange-distance scale; reports mean pO₂ response and normalized elasticity with CSV export.
 - Python/FastAPI reference implementation with configurable structural parameters and a local OAT sensitivity endpoint (`POST /api/v1/sensitivity`).
@@ -106,3 +106,8 @@ This is a computational sensitivity screen, not parameter calibration, physiolog
 The interactive anatomy view separates three display layers: vascular structures, pulp compartments, and trabecular framework. The procedural surface approximates the splenic capsule and hilar indentation. The vascular hierarchy is rendered from the splenic artery through hilar/segmental and trabecular branches, central and penicillar arterioles, schematic capillary and sinusoidal beds, pulp venules, trabecular veins, and the splenic vein. White-pulp follicles and marginal zones are shown as pale nodules/rings around selected central arteriolar paths; red pulp is represented as the dominant parenchymal field.
 
 The three computational territories remain reduced-order flow beds. Their pressure, inflow, outflow, branch caliber, and particle transit are visual mappings from model state; they are not measured vessel diameters or anatomically validated segmental territories. The procedural microvascular network is illustrative and does not resolve the open/closed splenic circulation at histological fidelity. Anatomical correctness, dimensions, branching topology, and physiological parameters require validation against authoritative atlases, segmented imaging, or histological datasets before quantitative or clinical interpretation.
+
+
+## Visceral surface refinement — v1.7.0
+
+The anatomical scene now includes shallow visceral-surface landmarks for the gastric, renal and colic impressions, superior-border notches, and schematic gastrosplenic and splenorenal ligament reflections. These features are independently toggleable from the vascular, pulp and trabecular layers. Their geometry is procedural and intended for orientation; it is not derived from a specimen or validated morphometric atlas.
