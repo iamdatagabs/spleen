@@ -1,3 +1,12 @@
+export const SPLENIC_SURFACE_LANDMARKS = Object.freeze([
+  { name: "gastric_impression", surface: "visceral", label: "Impressão gástrica" },
+  { name: "renal_impression", surface: "visceral", label: "Impressão renal" },
+  { name: "colic_impression", surface: "visceral", label: "Impressão cólica" },
+  { name: "gastrosplenic_ligament", surface: "visceral", label: "Ligamento gastroesplênico" },
+  { name: "splenorenal_ligament", surface: "visceral", label: "Ligamento esplenorrenal" },
+  { name: "superior_border_notches", surface: "superior", label: "Incisuras da borda superior" }
+]);
+
 export const SPLENIC_VESSEL_HIERARCHY = Object.freeze([
   { name: "splenic_artery", kind: "artery", order: 0 },
   { name: "hilar_segmental_arteries", kind: "artery", order: 1 },
@@ -92,9 +101,9 @@ export function createSplenicAnatomy(THREE, organ, territories) {
     impressions.add(patch);
     return patch;
   };
-  makeImpression("gastric-impression", [-.10,.40,.335], [.48,.31,.018], -.28);
-  makeImpression("renal-impression", [-.58,-.02,.265], [.29,.42,.014], .10);
-  makeImpression("colic-impression", [.18,-.43,.285], [.32,.20,.012], -.18);
+  makeImpression("gastric-impression", [-.10,.40,.455], [.48,.31,.018], -.28);
+  makeImpression("renal-impression", [-.58,-.02,.435], [.29,.42,.014], .10);
+  makeImpression("colic-impression", [.18,-.43,.405], [.32,.20,.012], -.18);
 
   // Peritoneal reflections are narrow translucent connective-tissue folds at the hilum.
   const ligamentMaterial = new THREE.MeshStandardMaterial({
