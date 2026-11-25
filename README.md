@@ -9,7 +9,7 @@ GitHub Pages is enabled and the initial deployment completed successfully. Open 
 
 The latest commits may still be propagating while their Actions runs finish. [Deployment history](https://github.com/iamdatagabs/spleen/actions).
 
-## Current model — v1.5.0 tissue oxygen sensitivity screening
+## Current model — v1.6.0 anatomical 3D visualization and tissue oxygen sensitivity screening
 - Four regional arterial flow compartments (stomach, intestine, spleen and pancreas).
 - Coupled portal pressure compartment with compliance and hepatic outflow resistance.
 - Simplified feedback from portal pressure to regional target flow.
@@ -103,6 +103,6 @@ This is a computational sensitivity screen, not parameter calibration, physiolog
 
 ## Anatomical 3D spleen — vascular and compartment layers
 
-The interactive anatomy view separates three display layers: vascular structures, pulp compartments, and trabecular framework. The procedural surface approximates the splenic capsule and hilar indentation. The vascular hierarchy is rendered from the splenic artery through hilar/segmental and trabecular branches, central and penicillar arterioles, schematic capillary and sinusoidal beds, pulp venules, trabecular veins, and the splenic vein. White-pulp follicles are shown as pale nodules around selected central arteriolar paths; red pulp is represented as the dominant parenchymal field.
+The interactive anatomy view separates three display layers: vascular structures, pulp compartments, and trabecular framework. The procedural surface approximates the splenic capsule and hilar indentation. The vascular hierarchy is rendered from the splenic artery through hilar/segmental and trabecular branches, central and penicillar arterioles, schematic capillary and sinusoidal beds, pulp venules, trabecular veins, and the splenic vein. White-pulp follicles and marginal zones are shown as pale nodules/rings around selected central arteriolar paths; red pulp is represented as the dominant parenchymal field.
 
 The three computational territories remain reduced-order flow beds. Their pressure, inflow, outflow, branch caliber, and particle transit are visual mappings from model state; they are not measured vessel diameters or anatomically validated segmental territories. The procedural microvascular network is illustrative and does not resolve the open/closed splenic circulation at histological fidelity. Anatomical correctness, dimensions, branching topology, and physiological parameters require validation against authoritative atlases, segmented imaging, or histological datasets before quantitative or clinical interpretation.
