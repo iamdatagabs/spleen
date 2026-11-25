@@ -3,7 +3,7 @@
 
 SPLEEN is an experimental computational-physiology prototype for exploring how hemodynamic changes during digestive surgery may alter regional splanchnic blood-flow distribution.
 
-## Live prototype
+**Portfolio:** [Gabriel Passos — Engineering Portfolio](https://iamdatagabs.github.io/iamdatagabs/portfolio/) · **Source:** [GitHub](https://github.com/iamdatagabs/spleen)\n\n## Live prototype
 GitHub Pages is enabled and the initial deployment completed successfully. Open the prototype at:
 `https://iamdatagabs.github.io/spleen/`
 
