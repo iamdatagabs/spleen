@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SPLENIC_VESSEL_HIERARCHY, validateSplenicVesselHierarchy } from "../anatomy-3d.mjs";
+import { SPLENIC_SURFACE_LANDMARKS, SPLENIC_VESSEL_HIERARCHY, validateSplenicVesselHierarchy } from "../anatomy-3d.mjs";
 
 test("splenic vascular hierarchy follows arterial, microvascular and venous sequence", () => {
   assert.equal(validateSplenicVesselHierarchy(), true);
@@ -26,4 +26,15 @@ test("hierarchy validator rejects missing, reordered or malformed vessel levels"
   const malformed = SPLENIC_VESSEL_HIERARCHY.map(v => ({...v}));
   malformed[4].order = 8;
   assert.equal(validateSplenicVesselHierarchy(malformed), false);
+});
+
+
+test("visceral surface exposes the main impressions and peritoneal reflections", () => {
+  const names = SPLENIC_SURFACE_LANDMARKS.map(item => item.name);
+  assert.ok(names.includes("gastric_impression"));
+  assert.ok(names.includes("renal_impression"));
+  assert.ok(names.includes("colic_impression"));
+  assert.ok(names.includes("gastrosplenic_ligament"));
+  assert.ok(names.includes("splenorenal_ligament"));
+  assert.ok(names.includes("superior_border_notches"));
 });
