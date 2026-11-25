@@ -26,13 +26,20 @@ export function createSplenicAnatomy(THREE, organ, territories) {
   const position = geometry.attributes.position;
   for (let i = 0; i < position.count; i++) {
     let x = position.getX(i), y = position.getY(i), z = position.getZ(i);
-    const notch = Math.exp(-((x - .58) ** 2 / .045 + y ** 2 / .055 + (z - .72) ** 2 / .20));
-    const superiorLobulation = .018 * Math.sin(7 * Math.atan2(z, y)) * Math.cos(4 * x);
-    const inferiorTaper = 1 - .16 * Math.max(0, -y);
-    const radial = 1 + superiorLobulation - .12 * notch;
+    const hilumNotch = Math.exp(-((x - .54) ** 2 / .055 + y ** 2 / .075 + (z - .72) ** 2 / .22));
+    const superiorNotches =
+      .030 * Math.exp(-((x + .28) ** 2 / .018 + (y - .88) ** 2 / .10 + (z - .18) ** 2 / .45)) +
+      .024 * Math.exp(-((x - .10) ** 2 / .020 + (y - .92) ** 2 / .10 + (z + .18) ** 2 / .45));
+    const visceralImpressions =
+      .050 * Math.exp(-((x + .48) ** 2 / .18 + (y - .12) ** 2 / .20 + (z - .72) ** 2 / .18)) +
+      .045 * Math.exp(-((x + .08) ** 2 / .24 + (y - .52) ** 2 / .16 + (z - .70) ** 2 / .16)) +
+      .035 * Math.exp(-((x - .28) ** 2 / .20 + (y + .48) ** 2 / .13 + (z - .68) ** 2 / .16));
+    const superiorLobulation = .014 * Math.sin(8 * Math.atan2(z, y)) * Math.cos(5 * x);
+    const inferiorTaper = 1 - .13 * Math.max(0, -y);
+    const radial = 1 + superiorLobulation - .15 * hilumNotch - superiorNotches - visceralImpressions;
     x = x * 1.38 * radial * inferiorTaper;
     y = y * .79 * radial * (1 - .035 * x);
-    z = z * .53 * radial - notch * .12;
+    z = z * .53 * radial - hilumNotch * .12;
     position.setXYZ(i, x, y, z);
   }
   geometry.computeVertexNormals();
@@ -64,7 +71,45 @@ export function createSplenicAnatomy(THREE, organ, territories) {
   trabeculae.add(capsule);
   const vascular = new THREE.Group();
   vascular.name = "hierarchical-vascular-tree";
-  organ.add(compartments, trabeculae, vascular);
+  const impressions = new THREE.Group();
+  impressions.name = "visceral-organ-impressions";
+  const ligaments = new THREE.Group();
+  ligaments.name = "peritoneal-ligaments";
+  organ.add(compartments, trabeculae, vascular, impressions, ligaments);
+
+  // Shallow, inset visceral impressions: gastric (largest), renal and colic.
+  // These are surface landmarks, not segmented contact areas.
+  const impressionMaterial = new THREE.MeshPhysicalMaterial({
+    color: "#592b49", roughness: .88, transparent: true, opacity: .20,
+    side: THREE.DoubleSide, depthWrite: false
+  });
+  const makeImpression = (name, position, scale, rotationZ = 0) => {
+    const patch = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 28), impressionMaterial.clone());
+    patch.name = name;
+    patch.position.set(...position);
+    patch.scale.set(...scale);
+    patch.rotation.z = rotationZ;
+    impressions.add(patch);
+    return patch;
+  };
+  makeImpression("gastric-impression", [-.10,.40,.335], [.48,.31,.018], -.28);
+  makeImpression("renal-impression", [-.58,-.02,.265], [.29,.42,.014], .10);
+  makeImpression("colic-impression", [.18,-.43,.285], [.32,.20,.012], -.18);
+
+  // Peritoneal reflections are narrow translucent connective-tissue folds at the hilum.
+  const ligamentMaterial = new THREE.MeshStandardMaterial({
+    color: "#d8c4a4", roughness: .82, transparent: true, opacity: .42,
+    side: THREE.DoubleSide, depthWrite: false
+  });
+  const ligament = (name, points, width) => {
+    const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)));
+    const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 32, width, 7, false), ligamentMaterial.clone());
+    mesh.name = name;
+    ligaments.add(mesh);
+    return mesh;
+  };
+  ligament("gastrosplenic-ligament", [[.62,.20,.38],[.78,.36,.31],[.95,.48,.18],[1.10,.50,.10]], .025);
+  ligament("splenorenal-ligament", [[.62,-.18,.30],[.80,-.32,.24],[.98,-.43,.14],[1.12,-.48,.08]], .023);
 
   const tube = (points, radius, color, parent, opacity = 1, radialSegments = 8) => {
     const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)));
@@ -183,6 +228,6 @@ export function createSplenicAnatomy(THREE, organ, territories) {
 
   return {
     geometry, surface, vascular, territoryVessels,
-    layers: { vascular, compartments, trabeculae }
+    layers: { vascular, compartments, trabeculae, impressions, ligaments }
   };
 }
