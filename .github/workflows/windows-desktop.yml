@@ -61,6 +61,16 @@ jobs:
         working-directory: desktop
         run: npm install
 
+      - name: Prepare isolated frontend bundle
+        working-directory: desktop
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist, dist/docs | Out-Null
+          Copy-Item ../index.html, ../styles.css, ../app.js, ../analysis.js, ../physiology.js, ../spleen3d.mjs, ../spatial-model.mjs, ../oxygen-transport.mjs, ../tissue-oxygen.mjs, ../tissue-sensitivity.mjs, ../tissue-sensitivity-ui.mjs -Destination dist/
+          Copy-Item ../docs/model.md, ../docs/model.tex -Destination dist/docs/
+          if (-not (Test-Path dist/index.html)) { throw "Frontend bundle is missing index.html" }
+          if (-not (Test-Path dist/tissue-oxygen.mjs)) { throw "Frontend bundle is missing tissue-oxygen.mjs" }
+
       - name: Build Windows installers
         working-directory: desktop
         run: npm run build
