@@ -54,6 +54,14 @@ export function createSplenicAnatomy(THREE, organ, territories) {
   compartments.name = "splenic-compartments";
   const trabeculae = new THREE.Group();
   trabeculae.name = "trabecular-framework";
+  const capsuleGeometry = geometry.clone();
+  capsuleGeometry.scale(1.009, 1.009, 1.009);
+  const capsule = new THREE.Mesh(capsuleGeometry, new THREE.MeshPhysicalMaterial({
+    color: "#d88e99", roughness: .52, transparent: true, opacity: .12,
+    side: THREE.DoubleSide, depthWrite: false
+  }));
+  capsule.name = "splenic-capsule";
+  trabeculae.add(capsule);
   const vascular = new THREE.Group();
   vascular.name = "hierarchical-vascular-tree";
   organ.add(compartments, trabeculae, vascular);
@@ -154,6 +162,13 @@ export function createSplenicAnatomy(THREE, organ, territories) {
       nodule.position.set(c.x + Math.cos(angle)*.13, c.y + Math.sin(angle)*.12, c.z + .015);
       nodule.scale.set(1.0, .82, .58);
       compartments.add(nodule);
+      const marginalZone = new THREE.Mesh(
+        new THREE.TorusGeometry(.083 + follicle*.008, .007, 6, 24),
+        new THREE.MeshStandardMaterial({color:"#d4a66d",roughness:.72,transparent:true,opacity:.55})
+      );
+      marginalZone.position.copy(nodule.position);
+      marginalZone.rotation.set(.35 + follicle*.2, .2 + index*.3, angle);
+      compartments.add(marginalZone);
     }
 
     territoryVessels.push({ artery, vein, arterialBeads: [], venousBeads: [] });
