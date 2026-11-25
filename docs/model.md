@@ -388,7 +388,7 @@ A interface exporta os resultados em CSV. A análise é determinística para cen
 The browser renderer now organizes the spleen view into three independently visible layers:
 
 1. **Trabecular framework:** a procedural capsule/surface with a hilar indentation and radiating connective-tissue septa.
-2. **Pulp compartments:** a dominant red-pulp field and schematic white-pulp follicles arranged around selected central arteriolar paths.
+2. **Pulp compartments:** a dominant red-pulp field and schematic white-pulp follicles with marginal zones arranged around selected central arteriolar paths.
 3. **Vascular hierarchy:** splenic artery, hilar/segmental branches, trabecular arteries, central and penicillar arterioles, schematic capillary/sinusoidal beds, pulp venules, trabecular veins, and splenic vein.
 
 The three flow territories remain computational parallel beds and are not asserted to be anatomically validated segmental territories. The renderer maps the reduced-order arterial inflow, venous outflow, and pressure state to branch caliber, particle transit, and territory shading. These mappings are display-only and do not represent measured vessel diameters, a patient-specific vascular tree, or spatial CFD.
