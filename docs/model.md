@@ -394,3 +394,10 @@ The browser renderer now organizes the spleen view into three independently visi
 The three flow territories remain computational parallel beds and are not asserted to be anatomically validated segmental territories. The renderer maps the reduced-order arterial inflow, venous outflow, and pressure state to branch caliber, particle transit, and territory shading. These mappings are display-only and do not represent measured vessel diameters, a patient-specific vascular tree, or spatial CFD.
 
 The vascular and compartment layers are procedural teaching geometry. The capillary/sinusoidal pathways are simplified illustrations; they do not reproduce the full histological architecture or establish the relative contribution of open and closed splenic circulation. Validation requires traceable anatomical references and, for quantitative geometry, segmented imaging or histological data. This visualization is not intended for clinical decision-making.
+
+
+## Refinamento anatômico da superfície visceral — v1.7.0
+
+A malha superficial incorpora depressões discretas para as impressões gástrica, renal e cólica, incisuras na borda superior e duas reflexões peritoneais esquemáticas: ligamento gastroesplênico e ligamento esplenorrenal. As novas estruturas pertencem a camadas independentes na interface e podem ser ocultadas sem desligar a árvore vascular ou os compartimentos pulpares.
+
+As impressões são marcos topográficos aproximados da face visceral. A cena não simula contato mecânico real com estômago, rim ou cólon, não representa inserções ligamentares em escala validada e não contém medidas morfométricas. A forma externa continua sendo uma aproximação procedural; a validação exige atlas anatômicos rastreáveis e, para dimensões quantitativas, segmentação de imagens ou dados morfológicos de referência.
