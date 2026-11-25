@@ -1,6 +1,7 @@
 import { distributeTerritoryFlow, territoryVisualMetrics } from "./spatial-model.mjs";
 import { calculateTerritoryOxygen } from "./oxygen-transport.mjs";
 import { solveTissueOxygen, sampleTissuePO2 } from "./tissue-oxygen.mjs";
+import { createSplenicAnatomy } from "./anatomy-3d.mjs";
 
 const host=document.getElementById("spleen3d"),canvas=document.getElementById("spleen3dCanvas"),fallback=document.getElementById("spleen3dFallback");
 if(host&&canvas){
@@ -13,14 +14,10 @@ if(host&&canvas){
     const key=new THREE.DirectionalLight(0xffd7ca,3);key.position.set(-3,4,5);scene.add(key);
     const rim=new THREE.DirectionalLight(0x6e9fff,2);rim.position.set(3,-2,-3);scene.add(rim);
     const organ=new THREE.Group();scene.add(organ);
-    const geometry=new THREE.SphereGeometry(1,80,64),pos=geometry.attributes.position;
-    for(let i=0;i<pos.count;i++){let x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);const notch=Math.exp(-Math.pow((x-.58)/.24,2)-Math.pow(y/.24,2)-Math.pow((z-.72)/.45,2));const taper=1-.13*Math.pow(Math.abs(x),2);x=x*1.38*taper;y=y*.79*(1-.05*x);z=z*.52-notch*.18;pos.setXYZ(i,x,y,z);}
-    geometry.computeVertexNormals();
-    geometry.setAttribute("color",new THREE.BufferAttribute(new Float32Array(pos.count*3),3));
-    const capsule=new THREE.Mesh(geometry,new THREE.MeshPhysicalMaterial({color:"#ffffff",vertexColors:true,roughness:.48,metalness:.02,clearcoat:.28,clearcoatRoughness:.35}));capsule.castShadow=true;capsule.receiveShadow=true;organ.add(capsule);
-    const hilum=new THREE.Mesh(new THREE.SphereGeometry(.095,24,16),new THREE.MeshStandardMaterial({color:"#f0c68f",emissive:"#6b3b28",emissiveIntensity:.35}));hilum.position.set(.78,0,.39);organ.add(hilum);
-    const vascular=new THREE.Group();organ.add(vascular);
     const territories=[{key:"superior",label:"Superior",color:"#f4bd67",center:new THREE.Vector3(-.15,.43,.27),radius:.34},{key:"middle",label:"Intermediário",color:"#58d6c2",center:new THREE.Vector3(.02,0,.39),radius:.36},{key:"inferior",label:"Inferior",color:"#69a9ff",center:new THREE.Vector3(-.18,-.43,.25),radius:.33}];
+    const anatomy=createSplenicAnatomy(THREE,organ,territories);
+    const {geometry,vascular,territoryVessels,layers}=anatomy;
+    const pos=geometry.attributes.position;
     const zoneMeshes=[],pressureNodes=[];
     const oxygenCenters=territories.map(t=>({x:t.center.x,y:t.center.y,z:t.center.z}));
     const oxygenLow=new THREE.Color("#ef626b"),oxygenMid=new THREE.Color("#f4bd67"),oxygenHigh=new THREE.Color("#58d6c2");
@@ -45,14 +42,19 @@ if(host&&canvas){
       if(distance)distance.textContent=stats.meanExchangeDistanceMm.toFixed(1).replace(".",",")+" mm";
     };
     territories.forEach(t=>{const zone=new THREE.Mesh(new THREE.SphereGeometry(t.radius,32,24),new THREE.MeshPhysicalMaterial({color:t.color,transparent:true,opacity:.25,roughness:.25,metalness:.05,depthWrite:false,emissive:t.color,emissiveIntensity:.12}));zone.position.copy(t.center);zone.scale.set(1.2,.85,.58);organ.add(zone);zoneMeshes.push(zone);const node=new THREE.Mesh(new THREE.SphereGeometry(.075,20,16),new THREE.MeshStandardMaterial({color:"#58d6c2",emissive:"#58d6c2",emissiveIntensity:.35,roughness:.3}));node.position.copy(t.center).add(new THREE.Vector3(0,0,.12));organ.add(node);pressureNodes.push(node);});
-    const tube=(points,radius,color,parent=vascular)=>{const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const material=new THREE.MeshStandardMaterial({color,roughness:.34,metalness:.04,emissive:color,emissiveIntensity:.18});const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,48,radius,10,false),material);parent.add(mesh);return{mesh,curve,material};};
-    tube([[-2.05,.05,.12],[-1.55,.04,.16],[-1.12,.02,.2],[-.78,0,.25]],.065,"#ff746d");
-    tube([[-.82,0,.25],[-.48,.28,.32],[-.25,.48,.29],[-.05,.53,.22]],.035,"#ff746d");
-    tube([[-.82,0,.25],[-.42,.02,.43],[-.12,.04,.43],[.18,.04,.38]],.034,"#ff746d");
-    tube([[-.82,0,.25],[-.48,-.3,.32],[-.28,-.49,.27],[-.08,-.54,.2]],.035,"#ff746d");
-    const territoryVessels=[];
-    territories.forEach(t=>{const c=t.center;const artery=tube([[-.55,0,.36],[-.38,c.y*.7,.42],[c.x-.05,c.y,.42],[c.x,c.y,c.z]],.025,"#ff746d");const vein=tube([[c.x,c.y,c.z],[c.x+.2,c.y*.65,.44],[.52,c.y*.28,.44],[.82,0,.38]],.026,"#78b5ff");const arterialBeads=[],venousBeads=[];for(let j=0;j<4;j++){const a=new THREE.Mesh(new THREE.SphereGeometry(.018,10,8),new THREE.MeshBasicMaterial({color:"#fff1d7"}));const v=new THREE.Mesh(new THREE.SphereGeometry(.018,10,8),new THREE.MeshBasicMaterial({color:"#d8edff"}));vascular.add(a,v);arterialBeads.push({mesh:a,phase:j/4});venousBeads.push({mesh:v,phase:j/4});}territoryVessels.push({artery,vein,arterialBeads,venousBeads});});
-    tube([[.82,0,.38],[1.2,.02,.32],[1.62,.05,.24],[2.05,.08,.15]],.065,"#78b5ff");
+    territoryVessels.forEach(v=>{
+      for(let j=0;j<4;j++){
+        const a=new THREE.Mesh(new THREE.SphereGeometry(.018,10,8),new THREE.MeshBasicMaterial({color:"#fff1d7"}));
+        const b=new THREE.Mesh(new THREE.SphereGeometry(.018,10,8),new THREE.MeshBasicMaterial({color:"#d8edff"}));
+        vascular.add(a,b);
+        v.arterialBeads.push({mesh:a,phase:j/4});
+        v.venousBeads.push({mesh:b,phase:j/4});
+      }
+    });
+    document.querySelectorAll("[data-anatomy-layer]").forEach(input=>{
+      const layer=layers[input.dataset.anatomyLayer];
+      if(layer){layer.visible=input.checked;input.addEventListener("change",()=>{layer.visible=input.checked;});}
+    });
     const floorGrid=new THREE.GridHelper(5,20,"#284255","#172d3d");floorGrid.position.y=-1.12;floorGrid.material.transparent=true;floorGrid.material.opacity=.28;scene.add(floorGrid);
     let yaw=-.16,pitch=.08,drag=false,px=0,py=0,zoom=5.1;
     canvas.addEventListener("pointerdown",e=>{drag=true;px=e.clientX;py=e.clientY;canvas.setPointerCapture(e.pointerId);});

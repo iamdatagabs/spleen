@@ -381,3 +381,16 @@ E_p \approx \frac{\bar P_{O_2}(p_+) - \bar P_{O_2}(p_-)}{\bar P_{O_2,0}}\,\frac{
 A interface exporta os resultados em CSV. A análise é determinística para cenário e parâmetros fixos. Os testes verificam quantidade de parâmetros, valores finitos, repetibilidade e validação da amplitude de perturbação.
 
 **Limitações:** OAT não mede interações, não estima incerteza conjunta, não calibra parâmetros e não estabelece identificabilidade. A perturbação de ±25% é uma escolha de engenharia para exploração computacional, não uma faixa fisiológica. Os coeficientes continuam ilustrativos e os resultados não devem orientar decisões clínicas.
+
+
+## Procedural anatomical visualization of the spleen
+
+The browser renderer now organizes the spleen view into three independently visible layers:
+
+1. **Trabecular framework:** a procedural capsule/surface with a hilar indentation and radiating connective-tissue septa.
+2. **Pulp compartments:** a dominant red-pulp field and schematic white-pulp follicles with marginal zones arranged around selected central arteriolar paths.
+3. **Vascular hierarchy:** splenic artery, hilar/segmental branches, trabecular arteries, central and penicillar arterioles, schematic capillary/sinusoidal beds, pulp venules, trabecular veins, and splenic vein.
+
+The three flow territories remain computational parallel beds and are not asserted to be anatomically validated segmental territories. The renderer maps the reduced-order arterial inflow, venous outflow, and pressure state to branch caliber, particle transit, and territory shading. These mappings are display-only and do not represent measured vessel diameters, a patient-specific vascular tree, or spatial CFD.
+
+The vascular and compartment layers are procedural teaching geometry. The capillary/sinusoidal pathways are simplified illustrations; they do not reproduce the full histological architecture or establish the relative contribution of open and closed splenic circulation. Validation requires traceable anatomical references and, for quantitative geometry, segmented imaging or histological data. This visualization is not intended for clinical decision-making.

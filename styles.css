@@ -89,3 +89,10 @@
 .sensitivity-table th{color:var(--muted);font-weight:600}
 .sensitivity-table td strong{color:var(--text)}
 @media(max-width:720px){.sensitivity-baseline{align-items:flex-start;flex-direction:column;gap:4px}.sensitivity-table{font-size:11px}}
+
+
+/* Anatomical spleen 3D layers */
+.anatomy-layer-controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 8px}
+.anatomy-layer-controls label{display:inline-flex;align-items:center;gap:7px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#0b1925;color:var(--muted);font-size:10px;cursor:pointer}
+.anatomy-layer-controls input{accent-color:var(--teal);margin:0}
+.anatomy-note{margin:8px 0 12px;color:var(--muted);font-size:10px;line-height:1.55}
