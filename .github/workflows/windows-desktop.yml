@@ -71,6 +71,12 @@ jobs:
           if (-not (Test-Path dist/index.html)) { throw "Frontend bundle is missing index.html" }
           if (-not (Test-Path dist/tissue-oxygen.mjs)) { throw "Frontend bundle is missing tissue-oxygen.mjs" }
 
+      - name: Verify desktop packaging assets
+        shell: pwsh
+        run: |
+          if (-not (Test-Path desktop/src-tauri/icons/icon.ico)) { throw "Missing Tauri Windows icon" }
+          if (-not (Test-Path desktop/dist/tissue-sensitivity.mjs)) { throw "Missing tissue sensitivity module" }
+          if (-not (Test-Path desktop/dist/tissue-sensitivity-ui.mjs)) { throw "Missing tissue sensitivity UI module" }
       - name: Build Windows installers
         working-directory: desktop
         run: npm run build
